@@ -1,4 +1,13 @@
 {
     "home_title": "Murray State ACM",
-    "home_construction": "Under Construction"
+    "home_description": "A student organization that hosts workshops, events, and speakers. All oriented around computer science.",
+    "home_join": "Get Started",
+    "home_events_title": "Events",
+    "home_events_description": "See ACM events from the past, present, and future.",
+    "home_news_title": "News",
+    "home_news_description": "View and interact with the latest news and updates.",
+    "home_about_title": "About Us",
+    "home_about_description": "Learn about the Murray State ACM chapter and its officers.",
+    "home_join_title": "Join the ACM",
+    "home_join_description": "Learn the benefits of becoming a local ACM member."
 }
