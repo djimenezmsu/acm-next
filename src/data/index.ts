@@ -1,10 +1,10 @@
 import sqlite3, { Database } from 'better-sqlite3'
 import { existsSync, mkdirSync } from "fs"
-import initData from "./initializers/data"
+import initData from "./initializers/webData"
 import { Databases, Pragma } from './types'
 
 const rootDirectory = process.cwd()
-const dataDirectory = rootDirectory + process.env.DATABASE_LOCATION || '/src/data/database'
+const dataDirectory = rootDirectory + (process.env.DATABASE_LOCATION || '/src/data/database/')
 if (!existsSync(dataDirectory)) {
     try {
         mkdirSync(dataDirectory)
@@ -22,7 +22,7 @@ const dbPragmas = {
 }
 
 const databaseMetadata = {
-    [Databases.DATA]: {
+    [Databases.WEB_DATA]: {
         path: 'bot_data.db',
         pragma: Pragma.DEFAULT,
         init: initData
