@@ -1,3 +1,5 @@
+import { Credentials } from "google-auth-library"
+
 // general types
 export enum Databases {
     WEB_DATA
@@ -27,4 +29,17 @@ export interface User {
     firstName: string
     lastName: string
     accessLevel: AccessLevel
+}
+
+// sessions types
+export interface RawSession {
+    token: string,
+    email: string,
+    google_tokens: string
+}
+
+export interface Session {
+    token: string,
+    user: User,
+    googleTokens: Credentials
 }
