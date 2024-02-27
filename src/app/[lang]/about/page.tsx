@@ -8,9 +8,9 @@ export default async function About() {
             <Divider></Divider>
             <section className="w-full flex flex-col gap-5">
                 <h2 className="text-on-surface font-bold text-2xl">ACM</h2>
-                <p>The ACM, or Association for Computing Machinery, brings together computing educators, researchers, and professionals to inspire dialogue, share resources, and address the field's challenges.</p>
+                <p>The ACM, or Association for Computing Machinery, brings together computing educators, researchers, and professionals to inspire dialogue, share resources, and address the field&apos;s challenges.</p>
                 <p>The Murray State University ACM is a chapter of this greater organization.</p>
-                <FilledButton text="Join Today" className="w-fit"></FilledButton>
+                <FilledButton text="Join Today" className="w-fit"/>
             </section>
             <Divider></Divider>
             <section className="w-full flex flex-col gap-5">
@@ -24,7 +24,7 @@ export default async function About() {
                 <h2 className="text-on-surface font-bold text-2xl">Events</h2>
                 <p>Our chapter of the ACM hosts various events throughout the school semester, including workshops, speakers, and game nights.</p>
                 <p>We typically have a meeting every Wednesday at 4:00 PM in Business Building 454.</p>
-                <FilledButton text="View Events" className="w-fit"></FilledButton>
+                <FilledButton text="View Events" className="w-fit"/>
             </section>
         </section>
     )
