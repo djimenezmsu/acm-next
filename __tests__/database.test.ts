@@ -1,40 +1,92 @@
 import { AccessLevel, News } from "@/data/types";
-import { deleteNews, deleteUser, getNews, getNewsfeed, getUser, insertNews, insertUser, updateNews, updateUser } from "@/data/webData";
+import { 
+  deleteNews, getNews, getNewsfeed, insertNews, updateNews,
+  getUser, insertUser, deleteUser, updateUser, userExists,
+  deleteSession, getSession, insertSession, updateSession
+       } from "@/data/webData";
 
 describe('Database', () => {
     // users table tests
-    test('can insert a user', () => insertUser({
+
+    const user = {
         email: 'jdoe@murraystate.edu',
-        firstName: 'John',
-        lastName: 'Doe',
+        givenName: 'John',
+        familyName: 'Doe',
+        picture: '',
         accessLevel: AccessLevel.NON_MEMBER
-    })
-        .then(_ => true)
-        .catch(_ => false)
-    )
+    } as User
 
-    test('can get a user', () => getUser('jdoe@murraystate.edu')
-        .then(user => expect(user).toEqual({
-            email: 'jdoe@murraystate.edu',
-            firstName: 'John',
-            lastName: 'Doe',
-            accessLevel: AccessLevel.NON_MEMBER
-        }))
-        .catch(_ => false)
-    )
-
-    test('can update a user', () => updateUser({
+    const updatedUser = {
         email: 'jdoe@murraystate.edu',
-        firstName: 'Jane'
+        givenName: 'Jane',
+        familyName: 'Doe',
+        picture: '',
+        accessLevel: AccessLevel.NON_MEMBER
+    } as User
+
+    test('can insert a user', () => insertUser(user))
+
+    test('can get a user', async () => {
+        const fetched = await getUser(user.email)
+        expect(fetched).toEqual(user)
     })
-        .then(user => expect(user).toEqual({
+
+    test('can check if a user exists', async () => {
+        const exists = await userExists(user.email)
+        expect(exists).toBe(true)
+    })
+
+    test('can check if a user does not exist', async () => {
+        const exists = await userExists('janedoe@murraystate.edu')
+        expect(exists).toBe(false)
+    })
+
+    test('can update a user', async () => {
+        const updated = await updateUser({
             email: 'jdoe@murraystate.edu',
-            firstName: 'Jane',
-            lastName: 'Doe',
-            accessLevel: AccessLevel.NON_MEMBER
-        }))
-        .catch(_ => false)
-    )
+            givenName: 'Jane'
+        })
+
+        expect(updated).toEqual(updatedUser)
+    })
+
+    // sessions tests
+    const toInsertSession = {
+        user: updatedUser,
+        googleTokens: { 'access_token': 'thisIsAnAccessToken' },
+        expires: new Date()
+    }
+
+    test('can insert a session', () => insertSession(toInsertSession))
+
+    test('can get a session', async () => {
+        const session = await insertSession(toInsertSession)
+
+        const fetched = await getSession(session.token)
+
+        expect(fetched).toEqual(toInsertSession)
+    })
+
+    test('can update a session', async () => {
+        const session = await insertSession(toInsertSession)
+
+        const updated = await updateSession({
+            token: session.token,
+            googleTokens: { 'access_token': 'thisIsAnUpdatedAccessToken' }
+        })
+
+        expect(updated).toEqual({
+            token: session.token,
+            user: updatedUser,
+            googleTokens: { 'access_token': 'thisIsAnUpdatedAccessToken' }
+        })
+    })
+
+    test('can delete a session', async () => {
+        const session = await insertSession(toInsertSession)
+
+        await deleteSession(session.token)
+    })
 
     test('can delete a user', () => deleteUser('jdoe@murraystate.edu')
         .then(_ => true)
