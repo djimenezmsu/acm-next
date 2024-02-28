@@ -1,5 +1,9 @@
-import { AccessLevel, User } from "@/data/types";
-import { deleteSession, deleteUser, getSession, getUser, insertSession, insertUser, updateSession, updateUser, userExists } from "@/data/webData";
+import { AccessLevel, News, User } from "@/data/types";
+import { 
+  deleteNews, getNews, getNewsfeed, insertNews, updateNews,
+  getUser, insertUser, deleteUser, updateUser, userExists,
+  deleteSession, getSession, insertSession, updateSession
+       } from "@/data/webData";
 
 describe('Database', () => {
     // users table tests
@@ -65,14 +69,15 @@ describe('Database', () => {
 
     test('can update a session', async () => {
         const session = await insertSession(toInsertSession)
-
         const updated = await updateSession({
             token: session.token,
+            expires: toInsertSession.expires,
             googleTokens: { 'access_token': 'thisIsAnUpdatedAccessToken' }
         })
 
         expect(updated).toEqual({
             token: session.token,
+            expires: toInsertSession.expires,
             user: updatedUser,
             googleTokens: { 'access_token': 'thisIsAnUpdatedAccessToken' }
         })
@@ -88,4 +93,55 @@ describe('Database', () => {
         .then(_ => true)
         .catch(_ => false)
     )
+
+    // news table tests
+    let newsRecordId = 0
+    let testDate = new Date()
+    test('can insert an announcement', async () => {
+        await insertNews(
+        "Test Title",
+        null,
+        "Test Body",
+        testDate,
+        null
+    )
+        .then(newsId => {
+            newsRecordId = newsId
+            expect(newsId).toBeGreaterThan(0)
+        })
+    })
+
+    test('can get an announcement', async () => {
+        await getNews(newsRecordId)
+        .then(result => expect(result).toEqual({
+        id: newsRecordId,
+        title: "Test Title",
+        subject: null,
+        body: "Test Body",
+        postDate: testDate,
+        imageURL: null
+        } as News))
+    })
+    
+    test('can update an announcement', async () => {
+        await updateNews({
+        id: newsRecordId,
+        title: "Test Title",
+        subject: "Test Subject",
+        body: "Test Body",
+        postDate: testDate,
+        imageURL: null
+        } as News)
+        .then(result => expect(result).toBe(true))
+    })
+
+    test('can get newsfeed', async () => {
+        await getNewsfeed(new Date(2000, 1, 1), 1, 0)
+        .then(result => expect(result).toBeDefined())
+    })
+
+    test('can delete an announcement', async () => {
+        await deleteNews(newsRecordId)
+        .then(result => expect(result).toBe(true))
+    })
 })

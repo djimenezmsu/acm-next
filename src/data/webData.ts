@@ -1,6 +1,7 @@
 import { randomBytes } from "crypto";
 import getDatabase from ".";
-import { AccessLevel, Databases, RawSession, RawUser, Session, User } from "./types";
+import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News } from "./types";
+
 
 // import database
 const db = getDatabase(Databases.WEB_DATA)
@@ -296,7 +297,7 @@ export function getSession(
     })
 }
 
-/**
+/*
  * Synchronously inserts a new session into the database.
  * 
  * @param session A session with everything except its token.
@@ -341,7 +342,7 @@ export function insertSession(
     })
 }
 
-/**
+/*
  * Synchronously updates a session.
  * 
  * @param session The values within session to update.
@@ -438,6 +439,233 @@ export function deleteSession(
     return new Promise<void>((resolve, reject) => {
         try {
             resolve(deleteSessionSync(token))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+// ----- NEWS -----
+
+/**
+ * Converts a RawNews from the database into a News
+ * 
+ * @param rawNews
+ * @returns News
+ */
+function buildNews(rawNews: RawNews): News {
+    return {
+        id: rawNews.id,
+        title: rawNews.title,
+        subject: rawNews.subject,
+        body: rawNews.body,
+        postDate: new Date(rawNews.post_date),
+        imageURL: rawNews.image_url
+    } as News
+}
+
+/**
+ * Gets a single record from the News Table
+ * 
+ * @param id
+ * @returns News on found; null on not found
+ */
+function getNewsSync(
+    id: number
+): News | null {
+    let rawData = db.prepare(`
+    SELECT id, title, subject, body, post_date, image_url FROM news 
+    WHERE id = ?
+    `)
+    .get(id) as RawNews | null
+
+    if (!rawData) return null
+    
+    return buildNews(rawData)
+}
+
+/**
+ * Gets a single record from the News Table
+ * 
+ * @param id
+ * @returns News on found; null on not found
+ */
+export function getNews(
+    id: number
+): Promise<News | null> {
+    return new Promise<News | null>((resolve, reject) => {
+        try {
+            resolve(getNewsSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Gets a News[] from the database based on startDate
+ * 
+ * @param startDate
+ * @param limit
+ * @param offset
+ * @returns News[] with all news for the given start date and offset
+ */
+function getNewsfeedSync(
+    startDate: Date,
+    limit: number,
+    offset: number
+): News[] {
+    let rawData = db.prepare(`
+    SELECT id, title, subject, body, post_date, image_url FROM news 
+    WHERE post_date > ? 
+    LIMIT ? OFFSET ?
+    `)
+    .all(startDate.toISOString(), limit, offset) as RawNews[]
+
+    return rawData.map(buildNews) as News[]
+}
+
+/**
+ * Gets a News[] from the database based on startDate
+ * 
+ * @param startDate
+ * @param limit
+ * @param offset
+ * @returns News[] with all news for the given start date and offset
+ */
+export function getNewsfeed(
+    startDate: Date,
+    limit: number,
+    offset: number
+): Promise<News[]> {
+    return new Promise<News[]>((resolve, reject) => {
+        try {
+            resolve(getNewsfeedSync(startDate, limit, offset))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Creates a new announcement
+ * 
+ * @param title
+ * @param subject
+ * @param body
+ * @param postDate
+ * @param imageURL
+ * @returns newsId
+ */
+function insertNewsSync(
+    title: string,
+    subject: string | null,
+    body: string,
+    postDate: Date,
+    imageURL: string | null
+): number {
+    let newsId = db.prepare(`
+    INSERT INTO news (title, subject, body, post_date, image_url)
+    VALUES (?, ?, ?, ?, ?)
+    `)
+    .run(title, subject, body, postDate.toISOString(), imageURL)
+    .lastInsertRowid
+
+    return Number(newsId)
+}
+
+/**
+ * Creates a new announcement
+ * 
+ * @param title
+ * @param subject
+ * @param body
+ * @param postDate
+ * @param imageURL
+ * @returns newsId
+ */
+export function insertNews(
+    title: string,
+    subject: string | null,
+    body: string,
+    postDate: Date,
+    imageURL: string | null
+): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+        try {
+            resolve(insertNewsSync(title, subject, body, postDate, imageURL))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Updates an announcement
+ * 
+ * @param news
+ * @returns true on success
+ */
+function updateNewsSync(
+    news: News
+): boolean {
+    db.prepare(`
+    UPDATE news SET title = ?, subject = ?, body = ?, post_date = ?, image_url = ?
+    WHERE id = ?
+    `)
+    .run(news.title, news.subject, news.body, news.postDate.toISOString(), news.imageURL, news.id)
+
+    return true
+}
+
+/**
+ * Updates an announcement
+ * 
+ * @param news
+ * @returns true on success
+ */
+export function updateNews (
+    news: News
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(updateNewsSync(news))
+        } catch (error) {
+            return false
+        }
+    })
+}
+
+/**
+ * Deletes an announcement
+ * 
+ * @param id
+ * @returns true on success
+ */
+function deleteNewsSync(
+    id: number
+): boolean {
+    db.prepare(`
+    DELETE FROM news 
+    WHERE id = ?
+    `)
+    .run(id)
+
+    return true
+}
+
+/**
+ * Deletes an announcement
+ * 
+ * @param id
+ * @returns true on success
+ */
+export function deleteNews(
+    id: number
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(deleteNewsSync(id))
         } catch (error) {
             reject(error)
         }
