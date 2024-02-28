@@ -11,5 +11,16 @@ export default function init(
         last_name TEXT NOT NULL,
         access_level TEXT NOT NULL
     )`).run()
+    
+    //news
+    //[PK][INT] id | [STR] title | [STR] subject | [STR] body | [STR] delay_date | [STR] image_url
+    database.prepare(`CREATE TABLE IF NOT EXISTS news(
+        id INT PRIMARY KEY NOT NULL,
+        title TEXT NOT NULL,
+        subject TEXT,
+        body TEXT NOT NULL,
+        post_date TEXT NOT NULL,
+        image_url TEXT
+    )`).run()
 
 }

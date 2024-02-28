@@ -28,3 +28,22 @@ export interface User {
     lastName: string
     accessLevel: AccessLevel
 }
+
+//news types
+export interface RawNews {
+    id: number,
+    title: string,
+    subject: string | null,
+    body: string,
+    post_date: string,
+    image_url: string | null
+}
+
+export interface News {
+    id: number,
+    title: string,
+    subject: string | null,
+    body: string,
+    postDate: Date,
+    imageURL: string | null
+}

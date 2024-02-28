@@ -1,5 +1,5 @@
 import getDatabase from ".";
-import { AccessLevel, Databases, RawUser, User } from "./types";
+import { AccessLevel, Databases, News, RawNews, RawUser, User } from "./types";
 
 // import database
 const db = getDatabase(Databases.WEB_DATA)
@@ -191,3 +191,68 @@ export function deleteUser(
         }
     })
 }
+
+// ----- NEWS -----
+
+function buildNews(rawNews: RawNews): News {
+    return {
+        id: rawNews.id,
+        title: rawNews.title,
+        subject: rawNews.subject,
+        body: rawNews.body,
+        postDate: new Date(rawNews.post_date),
+        imageURL: rawNews.image_url
+    } as News
+}
+
+function getAnnouncementSync(
+    id: number
+): News | null {
+    let rawData = db.prepare(`
+    SELECT id, title, subject, body, post_date,, image_url FROM news 
+    WHERE id = ?
+    `).get(id) as RawNews | null
+
+    if (!rawData) return null
+    
+    return buildNews(rawData)
+}
+
+export function getAnnouncement(
+    id: number
+): Promise<News | null> {
+    return new Promise<News | null>((resolve, reject) => {
+        try {
+            resolve(getAnnouncementSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+function getNewsfeedSync(
+    startDate: Date,
+    limit: number,
+    offset: number
+): News[] {
+    let rawData: RawNews[] = db.prepare(`
+    SELECT id, title, subject, body, post_date, image_url FROM news 
+    WHERE post_date > ? 
+    LIMIT ? OFFSET ?
+    `).get(startDate, limit, offset) as RawNews[]
+    return rawData.map(buildNews) as News[]
+}
+
+export function getNewsfeed(
+    startDate: Date,
+    limit: number,
+    offset: number
+): Promise<News[]> {
+    return new Promise<News[]>((resolve, reject) => {
+        try {
+            resolve(getNewsfeedSync(startDate, limit, offset))
+        } catch (error) {
+            reject(error)
+        }
+    })
+} 
