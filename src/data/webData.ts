@@ -1,5 +1,6 @@
+import { randomBytes } from "crypto";
 import getDatabase from ".";
-import { AccessLevel, Databases, RawUser, User } from "./types";
+import { AccessLevel, Databases, RawSession, RawUser, Session, User } from "./types";
 
 // import database
 const db = getDatabase(Databases.WEB_DATA)
@@ -17,8 +18,9 @@ function buildUser(
 ): User {
     return {
         email: rawUser.email,
-        firstName: rawUser.first_name,
-        lastName: rawUser.last_name,
+        givenName: rawUser.given_name,
+        familyName: rawUser.family_name,
+        picture: rawUser.picture,
         accessLevel: rawUser.access_level
     }
 }
@@ -34,7 +36,7 @@ function getUserSync(
 ): User | null {
 
     const rawUser = db.prepare(`
-    SELECT email, first_name, last_name, access_level
+    SELECT email, given_name, family_name, picture, access_level
     FROM users
     WHERE email = ?`).get(email) as RawUser | null
 
@@ -63,6 +65,39 @@ export function getUser(
 }
 
 /**
+ * Synchronously checks whether the provided user exists.
+ * 
+ * @param email The email of the user to check the existence of.
+ * @returns A boolean determining if the user exists.
+ */
+function userExistsSync(
+    email: string
+): boolean {
+    return db.prepare(`
+    SELECT email
+    FROM users
+    WHERE email = ?`).get(email) ? true : false
+}
+
+/**
+ * Checks whether the provided user exists.
+ * 
+ * @param email The email of the user to check the existence of.
+ * @returns A promise that resolves with a boolean determining if the user exists.
+ */
+export function userExists(
+    email: string
+): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(userExistsSync(email))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
  * Synchronously inserts the provided user into the database.
  * 
  * @param user The user to insert into the database.
@@ -72,11 +107,12 @@ function insertUserSync(
     user: User
 ): User {
     db.prepare(`
-    INSERT INTO users (email, first_name, last_name, access_level)
-    VALUES (?, ?, ?, ?)`).run(
+    INSERT INTO users (email, given_name, family_name, picture, access_level)
+    VALUES (?, ?, ?, ?, ?)`).run(
         user.email,
-        user.firstName,
-        user.lastName,
+        user.givenName,
+        user.familyName,
+        user.picture,
         user.accessLevel
     )
 
@@ -112,8 +148,9 @@ function updateUserSync(
 ): User {
     // maps the fields of the session object to their database counterparts
     const fields: Record<string, string> = {
-        firstName: 'first_name',
-        lastName: 'last_name',
+        givenName: 'given_name',
+        familyName: 'family_name',
+        picture: 'picture',
         accessLevel: 'access_level'
     }
 
@@ -168,7 +205,7 @@ export function updateUser(
  */
 function deleteUserSync(
     email: string
-): void {
+) {
     db.prepare(`
     DELETE FROM users
     WHERE email = ?`).run(email)
@@ -186,6 +223,221 @@ export function deleteUser(
     return new Promise<void>((resolve, reject) => {
         try {
             resolve(deleteUserSync(email))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+// ----- SESSIONS -----
+
+/**
+ * Randomly generates a session token.
+ * 
+ * @param [bytes=36] The number of bytes to generate.
+ * @returns A randomly generated session token.
+ */
+function generateSessionToken(
+    bytes: number = 36
+): string {
+    return randomBytes(bytes).toString('base64')
+}
+
+/**
+ * Converts a RawSession into a Session.
+ * 
+ * @param rawSession The RawSession to convert into a Session.
+ * @returns The converted Session.
+ */
+function buildSession(
+    rawSession: RawSession
+): Session | null {
+    const user = getUserSync(rawSession.email)
+    return user ? {
+        token: rawSession.token,
+        user: user,
+        googleTokens: JSON.parse(rawSession.google_tokens),
+        expires: new Date(rawSession.expires)
+    } : null
+}
+
+/**
+ * Synchronously gets the session associated with the provided token.
+ * 
+ * @param token The token of the session to get.
+ * @returns The found session or null.
+ */
+function getSessionSync(
+    token: string
+): Session | null {
+    const rawSession = db.prepare(`
+    SELECT token, email, google_tokens, expires
+    FROM sessions
+    WHERE token = ?`).get(token) as RawSession | null
+
+    return rawSession ? buildSession(rawSession) : null
+}
+
+/**
+ * Gets the session associated with the provided token.
+ * 
+ * @param token The token of the session to get.
+ * @returns A promise that resolves with the found session or null.
+ */
+export function getSession(
+    token: string
+): Promise<Session | null> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getSessionSync(token))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously inserts a new session into the database.
+ * 
+ * @param session A session with everything except its token.
+ * @returns The inserted session with its token.
+ */
+function insertSessionSync(
+    session: Omit<Session, 'token'>
+): Session {
+    const token = generateSessionToken()
+
+    // insert values
+    db.prepare(`
+    INSERT INTO sessions (token, email, google_tokens, expires)
+    VALUES (?, ?, ?, ?)
+    `).run(
+        token,
+        session.user.email,
+        JSON.stringify(session.googleTokens),
+        session.expires.toISOString()
+    )
+
+    const sessionWithToken = session as Session
+    sessionWithToken.token = token
+    return sessionWithToken
+}
+
+/**
+ * Inserts a new session into the database.
+ * 
+ * @param session A session with everything except its token.
+ * @returns A promise that resolves with the inserted session with its token.
+ */
+export function insertSession(
+    session: Omit<Session, 'token'>
+): Promise<Session> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(insertSessionSync(session))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously updates a session.
+ * 
+ * @param session The values within session to update.
+ * @returns The updated session.
+ */
+function updateSessionSync(
+    session: Partial<Session> & Pick<Session, 'token'>
+): Session {
+    // maps the fields of the session object to their database counterparts
+    const fields: Record<string, string> = {
+        email: 'email',
+        googleTokens: 'google_tokens',
+        expires: 'expires'
+    }
+
+    const sets: string[] = [] // list of strings like '[field] = ?'
+    const values: any[] = [] // the values that will replace "?" in the final query
+
+    // iterate the entire session object
+    for (const key in session) {
+        const value = session[key as keyof typeof session]
+        const field = fields[key]
+        if (field && value !== undefined) {
+            sets.push(`${field} = ?`) // create set value
+            // convert value to a type storable in the database, and add it to the values array.
+            switch(field) {
+                case 'google_tokens':
+                    values.push(JSON.stringify(value))
+                    break;
+                case 'email':
+                    values.push(session.user?.email)
+                    break;
+                default:
+                    values.push(value instanceof Date ? value.toISOString() : value)
+            }
+        }
+    }
+
+    const token = session.token
+
+    // build the SQL query to update the desired values
+    if (sets.length > 0) db.prepare(`
+            UPDATE sessions
+            SET ${sets.join(', ')}
+            WHERE token = ?
+            `).run([...values, token])
+
+    console.log(token, sets, values)
+
+    return getSessionSync(token) as Session
+}
+
+/**
+ * Updates a session.
+ * 
+ * @param session The values within session to update.
+ * @returns A promise that resolves with the updated session.
+ */
+export function updateSession(
+    session: Partial<Session> & Pick<Session, 'token'>
+): Promise<Session> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(updateSessionSync(session))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously deletes a session.
+ * 
+ * @param token The token of the session to delete.
+ */
+function deleteSessionSync(
+    token: string
+) {
+    db.prepare(`
+    DELETE FROM sessions
+    WHERE token = ?
+    `).run(token)
+}
+
+/**
+ * Deletes a session.
+ * 
+ * @param token The token of the session to delete.
+ * @returns A promise that resolves when the session is deleted.
+ */
+export function deleteSession(
+    token: string
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            resolve(deleteSessionSync(token))
         } catch (error) {
             reject(error)
         }

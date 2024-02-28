@@ -11,6 +11,8 @@
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.5.4",
     "better-sqlite3": "^9.4.3",
+    "crypto-js": "^4.2.0",
+    "google-auth-library": "^9.6.3",
     "material-symbols": "^0.15.0",
     "negotiator": "^0.6.3",
     "next": "14.1.0",
