@@ -194,6 +194,12 @@ export function deleteUser(
 
 // ----- NEWS -----
 
+/**
+ * Converts a RawNews from the database into a News
+ * 
+ * @param rawNews
+ * @returns News
+ */
 function buildNews(rawNews: RawNews): News {
     return {
         id: rawNews.id,
@@ -205,7 +211,13 @@ function buildNews(rawNews: RawNews): News {
     } as News
 }
 
-function getAnnouncementSync(
+/**
+ * Gets a single record from the News Table
+ * 
+ * @param id
+ * @returns News on found; null on not found
+ */
+function getNewsSync(
     id: number
 ): News | null {
     let rawData = db.prepare(`
@@ -218,18 +230,32 @@ function getAnnouncementSync(
     return buildNews(rawData)
 }
 
-export function getAnnouncement(
+/**
+ * Gets a single record from the News Table
+ * 
+ * @param id
+ * @returns News on found; null on not found
+ */
+export function getNews(
     id: number
 ): Promise<News | null> {
     return new Promise<News | null>((resolve, reject) => {
         try {
-            resolve(getAnnouncementSync(id))
+            resolve(getNewsSync(id))
         } catch (error) {
             reject(error)
         }
     })
 }
 
+/**
+ * Gets a News[] from the database based on startDate
+ * 
+ * @param startDate
+ * @param limit
+ * @param offset
+ * @returns News[] with all news for the given start date and offset
+ */
 function getNewsfeedSync(
     startDate: Date,
     limit: number,
@@ -243,6 +269,14 @@ function getNewsfeedSync(
     return rawData.map(buildNews) as News[]
 }
 
+/**
+ * Gets a News[] from the database based on startDate
+ * 
+ * @param startDate
+ * @param limit
+ * @param offset
+ * @returns News[] with all news for the given start date and offset
+ */
 export function getNewsfeed(
     startDate: Date,
     limit: number,
@@ -255,4 +289,125 @@ export function getNewsfeed(
             reject(error)
         }
     })
-} 
+}
+
+/**
+ * Creates a new announcement
+ * 
+ * @param title
+ * @param subject
+ * @param body
+ * @param postDate
+ * @param imageURL
+ * @returns true on success
+ */
+function insertNewsSync(
+    title: string,
+    subject: string | null,
+    body: string,
+    postDate: Date,
+    imageURL: string | null
+): boolean {
+    db.prepare(`
+    INSERT INTO news (title, subject, body, post_date, image_url)
+    VALUES 
+    `).run(title, subject, body, postDate.toISOString(), imageURL)
+
+    return true
+}
+
+/**
+ * Creates a new announcement
+ * 
+ * @param title
+ * @param subject
+ * @param body
+ * @param postDate
+ * @param imageURL
+ * @returns true on success
+ */
+export function insertNews(
+    title: string,
+    subject: string | null,
+    body: string,
+    postDate: Date,
+    imageURL: string | null
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(insertNewsSync(title, subject, body, postDate, imageURL))
+        } catch (error) {
+            return false
+        }
+    })
+}
+
+/**
+ * Updates an announcement
+ * 
+ * @param news
+ * @returns true on success
+ */
+function updateNewsSync(
+    news: News
+): boolean {
+    db.prepare(`
+    UPDATE news SET title = ?, subject = ?, body = ?, postDate = ?, imageURL = ?
+    WHERE id = ?
+    `).run(news.title, news.subject, news.body, news.postDate.toISOString(), news.imageURL, news.id)
+
+    return true
+}
+
+/**
+ * Updates an announcement
+ * 
+ * @param news
+ * @returns true on success
+ */
+export function updateNews (
+    news: News
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(updateNewsSync(news))
+        } catch (error) {
+            return false
+        }
+    })
+}
+
+/**
+ * Deletes an announcement
+ * 
+ * @param id
+ * @returns true on success
+ */
+function deleteNewsSync(
+    id: number
+): boolean {
+    db.prepare(`
+    DELETE FROM news 
+    WHERE id = ?
+    `).run(id)
+
+    return true
+}
+
+/**
+ * Deletes an announcement
+ * 
+ * @param id
+ * @returns true on success
+ */
+export function deleteNews(
+    id: number
+): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+        try {
+            resolve(deleteNewsSync(id))
+        } catch (error) {
+            return false
+        }
+    })
+}

@@ -15,7 +15,7 @@ export default function init(
     //news
     //[PK][INT] id | [STR] title | [STR] subject | [STR] body | [STR] delay_date | [STR] image_url
     database.prepare(`CREATE TABLE IF NOT EXISTS news(
-        id INT PRIMARY KEY NOT NULL,
+        id INT PRIMARY KEY NOT NULL AUTOINCREMENT,
         title TEXT NOT NULL,
         subject TEXT,
         body TEXT NOT NULL,

@@ -40,4 +40,6 @@ describe('Database', () => {
         .then(_ => true)
         .catch(_ => false)
     )
+
+    // news table tests
 })
