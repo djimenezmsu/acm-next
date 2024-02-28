@@ -19,15 +19,17 @@ export enum AccessLevel {
 
 export interface RawUser {
     email: string
-    first_name: string
-    last_name: string
+    given_name: string
+    family_name: string
+    picture: string,
     access_level: number
 }
 
 export interface User {
     email: string
-    firstName: string
-    lastName: string
+    givenName: string
+    familyName: string
+    picture: string,
     accessLevel: AccessLevel
 }
 
@@ -35,11 +37,13 @@ export interface User {
 export interface RawSession {
     token: string,
     email: string,
-    google_tokens: string
+    google_tokens: string,
+    expires: string
 }
 
 export interface Session {
     token: string,
     user: User,
-    googleTokens: Credentials
+    googleTokens: Credentials,
+    expires: Date
 }

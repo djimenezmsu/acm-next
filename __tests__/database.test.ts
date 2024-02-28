@@ -1,4 +1,4 @@
-import { AccessLevel } from "@/data/types";
+import { AccessLevel, User } from "@/data/types";
 import { deleteSession, deleteUser, getSession, getUser, insertSession, insertUser, updateSession, updateUser, userExists } from "@/data/webData";
 
 describe('Database', () => {
@@ -6,17 +6,19 @@ describe('Database', () => {
 
     const user = {
         email: 'jdoe@murraystate.edu',
-        firstName: 'John',
-        lastName: 'Doe',
+        givenName: 'John',
+        familyName: 'Doe',
+        picture: '',
         accessLevel: AccessLevel.NON_MEMBER
-    }
+    } as User
 
     const updatedUser = {
         email: 'jdoe@murraystate.edu',
-        firstName: 'Jane',
-        lastName: 'Doe',
+        givenName: 'Jane',
+        familyName: 'Doe',
+        picture: '',
         accessLevel: AccessLevel.NON_MEMBER
-    }
+    } as User
 
     test('can insert a user', () => insertUser(user))
 
@@ -38,7 +40,7 @@ describe('Database', () => {
     test('can update a user', async () => {
         const updated = await updateUser({
             email: 'jdoe@murraystate.edu',
-            firstName: 'Jane'
+            givenName: 'Jane'
         })
 
         expect(updated).toEqual(updatedUser)
@@ -47,7 +49,8 @@ describe('Database', () => {
     // sessions tests
     const toInsertSession = {
         user: updatedUser,
-        googleTokens: { 'access_token': 'thisIsAnAccessToken' }
+        googleTokens: { 'access_token': 'thisIsAnAccessToken' },
+        expires: new Date()
     }
 
     test('can insert a session', () => insertSession(toInsertSession))

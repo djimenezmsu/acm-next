@@ -18,8 +18,9 @@ function buildUser(
 ): User {
     return {
         email: rawUser.email,
-        firstName: rawUser.first_name,
-        lastName: rawUser.last_name,
+        givenName: rawUser.given_name,
+        familyName: rawUser.family_name,
+        picture: rawUser.picture,
         accessLevel: rawUser.access_level
     }
 }
@@ -35,7 +36,7 @@ function getUserSync(
 ): User | null {
 
     const rawUser = db.prepare(`
-    SELECT email, first_name, last_name, access_level
+    SELECT email, given_name, family_name, picture, access_level
     FROM users
     WHERE email = ?`).get(email) as RawUser | null
 
@@ -106,11 +107,12 @@ function insertUserSync(
     user: User
 ): User {
     db.prepare(`
-    INSERT INTO users (email, first_name, last_name, access_level)
-    VALUES (?, ?, ?, ?)`).run(
+    INSERT INTO users (email, given_name, family_name, picture, access_level)
+    VALUES (?, ?, ?, ?, ?)`).run(
         user.email,
-        user.firstName,
-        user.lastName,
+        user.givenName,
+        user.familyName,
+        user.picture,
         user.accessLevel
     )
 
@@ -146,8 +148,9 @@ function updateUserSync(
 ): User {
     // maps the fields of the session object to their database counterparts
     const fields: Record<string, string> = {
-        firstName: 'first_name',
-        lastName: 'last_name',
+        givenName: 'given_name',
+        familyName: 'family_name',
+        picture: 'picture',
         accessLevel: 'access_level'
     }
 
@@ -253,7 +256,8 @@ function buildSession(
     return user ? {
         token: rawSession.token,
         user: user,
-        googleTokens: JSON.parse(rawSession.google_tokens)
+        googleTokens: JSON.parse(rawSession.google_tokens),
+        expires: new Date(rawSession.expires)
     } : null
 }
 
@@ -267,7 +271,7 @@ function getSessionSync(
     token: string
 ): Session | null {
     const rawSession = db.prepare(`
-    SELECT token, email, google_tokens
+    SELECT token, email, google_tokens, expires
     FROM sessions
     WHERE token = ?`).get(token) as RawSession | null
 
@@ -305,12 +309,13 @@ function insertSessionSync(
 
     // insert values
     db.prepare(`
-    INSERT INTO sessions (token, email, google_tokens)
-    VALUES (?, ?, ?)
+    INSERT INTO sessions (token, email, google_tokens, expires)
+    VALUES (?, ?, ?, ?)
     `).run(
         token,
         session.user.email,
-        JSON.stringify(session.googleTokens)
+        JSON.stringify(session.googleTokens),
+        session.expires.toISOString()
     )
 
     const sessionWithToken = session as Session
@@ -348,7 +353,8 @@ function updateSessionSync(
     // maps the fields of the session object to their database counterparts
     const fields: Record<string, string> = {
         email: 'email',
-        googleTokens: 'google_tokens'
+        googleTokens: 'google_tokens',
+        expires: 'expires'
     }
 
     const sets: string[] = [] // list of strings like '[field] = ?'
@@ -361,7 +367,16 @@ function updateSessionSync(
         if (field && value !== undefined) {
             sets.push(`${field} = ?`) // create set value
             // convert value to a type storable in the database, and add it to the values array.
-            values.push(field == 'google_tokens' ? JSON.stringify(value) : field == 'email' ? session.user?.email : value)
+            switch(field) {
+                case 'google_tokens':
+                    values.push(JSON.stringify(value))
+                    break;
+                case 'email':
+                    values.push(session.user?.email)
+                    break;
+                default:
+                    values.push(value instanceof Date ? value.toISOString() : value)
+            }
         }
     }
 
