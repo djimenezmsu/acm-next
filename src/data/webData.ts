@@ -474,7 +474,7 @@ function getNewsSync(
     id: number
 ): News | null {
     let rawData = db.prepare(`
-    SELECT id, title, subject, body, post_date,, image_url FROM news 
+    SELECT id, title, subject, body, post_date, image_url FROM news 
     WHERE id = ?
     `)
     .get(id) as RawNews | null
@@ -566,7 +566,7 @@ function insertNewsSync(
 ): number {
     let newsId = db.prepare(`
     INSERT INTO news (title, subject, body, post_date, image_url)
-    VALUES 
+    VALUES (?, ?, ?, ?, ?)
     `)
     .run(title, subject, body, postDate.toISOString(), imageURL)
     .lastInsertRowid

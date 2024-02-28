@@ -1,4 +1,4 @@
-import { AccessLevel, News } from "@/data/types";
+import { AccessLevel, News, User } from "@/data/types";
 import { 
   deleteNews, getNews, getNewsfeed, insertNews, updateNews,
   getUser, insertUser, deleteUser, updateUser, userExists,
@@ -69,14 +69,15 @@ describe('Database', () => {
 
     test('can update a session', async () => {
         const session = await insertSession(toInsertSession)
-
         const updated = await updateSession({
             token: session.token,
+            expires: toInsertSession.expires,
             googleTokens: { 'access_token': 'thisIsAnUpdatedAccessToken' }
         })
 
         expect(updated).toEqual({
             token: session.token,
+            expires: toInsertSession.expires,
             user: updatedUser,
             googleTokens: { 'access_token': 'thisIsAnUpdatedAccessToken' }
         })
@@ -96,7 +97,8 @@ describe('Database', () => {
     // news table tests
     let newsRecordId = 0
     let testDate = new Date()
-    test('can insert an announcement', () => insertNews(
+    test('can insert an announcement', async () => {
+        await insertNews(
         "Test Title",
         null,
         "Test Body",
@@ -107,10 +109,10 @@ describe('Database', () => {
             newsRecordId = newsId
             expect(newsId).toBeGreaterThan(0)
         })
-        .catch(_ => false)
-    )
+    })
 
-    test('can get an announcement', () => getNews(newsRecordId)
+    test('can get an announcement', async () => {
+        await getNews(newsRecordId)
         .then(result => expect(result).toEqual({
         id: newsRecordId,
         title: "Test Title",
@@ -119,27 +121,27 @@ describe('Database', () => {
         postDate: testDate,
         imageURL: null
         } as News))
-        .catch(_ => false))
+    })
     
-    test('can update an announcement', () => updateNews({
+    test('can update an announcement', async () => {
+        await updateNews({
         id: newsRecordId,
         title: "Test Title",
         subject: "Test Subject",
         body: "Test Body",
         postDate: testDate,
         imageURL: null
-        } as News
-        )
+        } as News)
         .then(result => expect(result).toBe(true))
-        .catch(_ => false)
-    )
+    })
 
-    test('can get newsfeed', () => getNewsfeed(new Date(2000, 1, 1), 1, 0)
+    test('can get newsfeed', async () => {
+        await getNewsfeed(new Date(2000, 1, 1), 1, 0)
         .then(result => expect(result).toBeDefined())
-        .catch(_ => false)
-    )
+    })
 
-    test('can delete an announcement', () => deleteNews(newsRecordId)
+    test('can delete an announcement', async () => {
+        await deleteNews(newsRecordId)
         .then(result => expect(result).toBe(true))
-        .catch(_ => false))
+    })
 })
