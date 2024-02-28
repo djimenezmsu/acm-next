@@ -223,7 +223,8 @@ function getNewsSync(
     let rawData = db.prepare(`
     SELECT id, title, subject, body, post_date,, image_url FROM news 
     WHERE id = ?
-    `).get(id) as RawNews | null
+    `)
+    .get(id) as RawNews | null
 
     if (!rawData) return null
     
@@ -261,11 +262,13 @@ function getNewsfeedSync(
     limit: number,
     offset: number
 ): News[] {
-    let rawData: RawNews[] = db.prepare(`
+    let rawData = db.prepare(`
     SELECT id, title, subject, body, post_date, image_url FROM news 
     WHERE post_date > ? 
     LIMIT ? OFFSET ?
-    `).get(startDate, limit, offset) as RawNews[]
+    `)
+    .all(startDate.toISOString(), limit, offset) as RawNews[]
+
     return rawData.map(buildNews) as News[]
 }
 
@@ -299,7 +302,7 @@ export function getNewsfeed(
  * @param body
  * @param postDate
  * @param imageURL
- * @returns true on success
+ * @returns newsId
  */
 function insertNewsSync(
     title: string,
@@ -307,13 +310,15 @@ function insertNewsSync(
     body: string,
     postDate: Date,
     imageURL: string | null
-): boolean {
-    db.prepare(`
+): number {
+    let newsId = db.prepare(`
     INSERT INTO news (title, subject, body, post_date, image_url)
     VALUES 
-    `).run(title, subject, body, postDate.toISOString(), imageURL)
+    `)
+    .run(title, subject, body, postDate.toISOString(), imageURL)
+    .lastInsertRowid
 
-    return true
+    return Number(newsId)
 }
 
 /**
@@ -324,7 +329,7 @@ function insertNewsSync(
  * @param body
  * @param postDate
  * @param imageURL
- * @returns true on success
+ * @returns newsId
  */
 export function insertNews(
     title: string,
@@ -332,12 +337,12 @@ export function insertNews(
     body: string,
     postDate: Date,
     imageURL: string | null
-): Promise<boolean> {
-    return new Promise<boolean>((resolve, reject) => {
+): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
         try {
             resolve(insertNewsSync(title, subject, body, postDate, imageURL))
         } catch (error) {
-            return false
+            reject(error)
         }
     })
 }
@@ -352,9 +357,10 @@ function updateNewsSync(
     news: News
 ): boolean {
     db.prepare(`
-    UPDATE news SET title = ?, subject = ?, body = ?, postDate = ?, imageURL = ?
+    UPDATE news SET title = ?, subject = ?, body = ?, post_date = ?, image_url = ?
     WHERE id = ?
-    `).run(news.title, news.subject, news.body, news.postDate.toISOString(), news.imageURL, news.id)
+    `)
+    .run(news.title, news.subject, news.body, news.postDate.toISOString(), news.imageURL, news.id)
 
     return true
 }
@@ -389,7 +395,8 @@ function deleteNewsSync(
     db.prepare(`
     DELETE FROM news 
     WHERE id = ?
-    `).run(id)
+    `)
+    .run(id)
 
     return true
 }
