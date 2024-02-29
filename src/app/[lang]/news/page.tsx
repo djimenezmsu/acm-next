@@ -33,8 +33,6 @@ export default async function Newsfeed() {
     data.forEach(announcement => {
         sections[2 * (maxYear-announcement.postDate.getFullYear()) + (announcement.postDate.getMonth() > 6? 0 : 1)].push(announcement)
     })
-
-    console.log(sections)
     
     return (
         <article className="w-full max-w-6xl flex flex-col gap-5 mt-20  text-on-surface">
@@ -62,7 +60,6 @@ export default async function Newsfeed() {
                     )
                 })
             }
-            
         </article>
     )
 }
