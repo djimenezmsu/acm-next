@@ -4,6 +4,9 @@ import "./globals.css";
 import localFont from 'next/font/local'
 import { Locale, getDictionary } from "@/localization";
 import { Providers } from "@/components/providers/providers";
+import Navbar from "@/components/navbar";
+import { getActiveSession } from "@/lib/oauth";
+import { cookies } from "next/headers";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -34,10 +37,16 @@ export default async function RootLayout({
 }>) {
   const locale = params.lang
   const langDict = await getDictionary(locale)
+  const session = await getActiveSession(cookies())
+
   return (
     <html lang={locale} className={`${inter.variable} ${materialSymbols.variable}`}>
       <body className="bg-background">
         <Providers dictionary={langDict}>
+          {/* Nav bar */}
+          <Navbar lang={locale} user={session ? session.user : null}/>
+
+          {/* Main page content */}
           <main className="max-w-[1920px] min-h-screen m-auto flex flex-col justify-start items-center px-5 py-6 box-border">
             {children}
           </main>
