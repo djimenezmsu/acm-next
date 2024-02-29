@@ -3,7 +3,7 @@ import { FilledButton } from "@/components/material/filled-button";
 
 export default async function About() {
     return (
-        <section className="w-full max-w-6xl flex flex-col gap-5 mt-20  text-on-surface">
+        <article className="w-full max-w-6xl flex flex-col gap-5 mt-20  text-on-surface">
             <h1 className="text-on-surface font-bold text-4xl ">About Us</h1>
             <Divider></Divider>
             <section className="w-full flex flex-col gap-5">
@@ -26,6 +26,6 @@ export default async function About() {
                 <p>We typically have a meeting every Wednesday at 4:00 PM in Business Building 454.</p>
                 <FilledButton text="View Events" className="w-fit" href="/events"/>
             </section>
-        </section>
+        </article>
     )
 }
