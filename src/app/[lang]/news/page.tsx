@@ -15,19 +15,23 @@ export default async function Newsfeed() {
         })
 
     let maxYear = 0
-    let yearList = new Set()
+    let minYear = 0
 
     data.map(announcement => {
         maxYear = Math.max(announcement.postDate.getFullYear(), maxYear)
-        yearList.add(announcement.postDate.getFullYear())
+        minYear = Math.min(announcement.postDate.getFullYear(), maxYear)
     })
 
+    //Sections is a doubled-up array
+    //index 0 is maxYear Fall and index 1 is maxYear Spring and so on
     let sections: News[][] = []
-    for (let i = 0; i < yearList.size * 2; i++) {
+    for (let i = 0; i < 2 * (maxYear - minYear + 1); i++) {
         sections.push([])
     }
+    
+    //Add each news to its appropriate section
     data.forEach(announcement => {
-        sections[2 * (maxYear-announcement.postDate.getFullYear()) + announcement.postDate.getMonth() > 6? 0 : 1].push(announcement)
+        sections[2 * (maxYear-announcement.postDate.getFullYear()) + (announcement.postDate.getMonth() > 6? 0 : 1)].push(announcement)
     })
 
     console.log(sections)
@@ -41,9 +45,11 @@ export default async function Newsfeed() {
             <Divider />
             {
                 sections.map(section => {
+                    if (section.length < 1)
+                        return <></>
                     return (
                         <section className="w-full max-w-6xl flex flex-col gap-5 text-on-surface">
-                            <h1 className="text-on-surface font-bold text-4xl ">{sections.indexOf(section) % 2 == 0? "Fall": "Spring"}</h1>
+                            <h1 className="text-on-surface font-bold text-4xl ">{(sections.indexOf(section) % 2 == 0? "Fall ": "Spring " ) + Math.ceil(maxYear - sections.indexOf(section)/2)}</h1>
                             <Divider/>
                             <section className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-5 text-on-surface">
                             {
