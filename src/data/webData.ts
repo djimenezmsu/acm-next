@@ -518,7 +518,8 @@ function getNewsfeedSync(
     let rawData = db.prepare(`
     SELECT id, title, subject, body, post_date, image_url FROM news 
     WHERE post_date > ? 
-    LIMIT ? OFFSET ?
+    ORDER BY post_date DESC, Id DESC
+    LIMIT ? OFFSET ? 
     `)
     .all(startDate.toISOString(), limit, offset) as RawNews[]
 
