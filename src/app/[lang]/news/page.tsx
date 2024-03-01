@@ -3,8 +3,20 @@ import { News } from "@/data/types"
 import { NewsCard } from "@/components/news-card";
 import { Divider } from "@/components/material/divider";
 import { FilledButton } from "@/components/material/filled-button";
+import { Locale, getDictionary } from "@/localization";
 
-export default async function Newsfeed() {
+export default async function Newsfeed(
+    {
+        params
+      }: {
+        params: {
+          lang: Locale
+        }
+      }
+) {
+    const locale = params.lang
+    const langDict = await getDictionary(locale)
+
     let data: News[] = []
     const newsFeed = await getNewsfeed(new Date(2024, 1, 1), 10, 0)
         .then(result => data = result)
@@ -37,8 +49,8 @@ export default async function Newsfeed() {
     return (
         <article className="w-full max-w-6xl flex flex-col gap-5 mt-20  text-on-surface">
             <section className="w-full flex flex-row justify-between align-middle">
-                <h1 className="text-on-surface font-bold text-4xl ">News</h1>
-                <FilledButton text="New Post" href="/news/create" />
+                <h1 className="text-on-surface font-bold text-4xl ">{langDict.nav_news}</h1>
+                <FilledButton text={langDict.new_post} href="/news/create" />
             </section>
             <Divider />
             {
@@ -47,14 +59,14 @@ export default async function Newsfeed() {
                         return <></>
                     return (
                         <section className="w-full max-w-6xl flex flex-col gap-5 text-on-surface">
-                            <h1 className="text-on-surface font-bold text-3xl ">{(sections.indexOf(section) % 2 == 0 ? "Fall " : "Spring ") + Math.ceil(maxYear - sections.indexOf(section) / 2)}</h1>
-                            <section className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-5 text-on-surface">
+                            <h1 className="text-on-surface font-semibold text-3xl ">{(sections.indexOf(section) % 2 == 0 ? `${langDict.Fall} ` : `${langDict.Spring} `) + Math.ceil(maxYear - sections.indexOf(section) / 2)}</h1>
+                            <ol className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-5 text-on-surface">
                                 {
                                     section.map(announcement => {
-                                        return <NewsCard news={announcement} />
+                                        return <NewsCard news={announcement} lang={params.lang}/>
                                     })
                                 }
-                            </section>
+                            </ol>
                         </section>
                     )
                 })

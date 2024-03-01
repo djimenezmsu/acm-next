@@ -15,5 +15,9 @@
     "nav_join": "Join",
     "nav_about": "About Us",
     "nav_login": "Login",
-    "settings_title": "Settings"
+    "settings_title": "Settings",
+    "Fall": "Fall",
+    "Spring": "Spring",
+    "new_post": "New Post",
+    "view_more": "View More"
 }
