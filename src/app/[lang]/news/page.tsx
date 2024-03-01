@@ -13,7 +13,7 @@ export default async function Newsfeed(
     }
 ) {
     let data: News[] = []
-    const newsFeed = await getNewsfeed(new Date(2023, 1, 1), 10, 0)
+    await getNewsfeed(50, 1)
         .then(result => data = result)
         .catch(error => {
             return (

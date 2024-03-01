@@ -505,23 +505,20 @@ export function getNews(
 /**
  * Gets a News[] from the database based on startDate
  * 
- * @param startDate
  * @param limit
- * @param offset
+ * @param page
  * @returns News[] with all news for the given start date and offset
  */
 function getNewsfeedSync(
-    startDate: Date,
     limit: number,
-    offset: number
+    page: number
 ): News[] {
     let rawData = db.prepare(`
     SELECT id, title, subject, body, post_date, image_url FROM news 
-    WHERE post_date > ? 
     ORDER BY post_date DESC, Id DESC
     LIMIT ? OFFSET ? 
     `)
-    .all(startDate.toISOString(), limit, offset) as RawNews[]
+    .all(limit, limit * (page - 1)) as RawNews[]
 
     return rawData.map(buildNews) as News[]
 }
@@ -529,19 +526,17 @@ function getNewsfeedSync(
 /**
  * Gets a News[] from the database based on startDate
  * 
- * @param startDate
  * @param limit
- * @param offset
+ * @param page
  * @returns News[] with all news for the given start date and offset
  */
 export function getNewsfeed(
-    startDate: Date,
     limit: number,
-    offset: number
+    page: number
 ): Promise<News[]> {
     return new Promise<News[]>((resolve, reject) => {
         try {
-            resolve(getNewsfeedSync(startDate, limit, offset))
+            resolve(getNewsfeedSync(limit, page))
         } catch (error) {
             reject(error)
         }
