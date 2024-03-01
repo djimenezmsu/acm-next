@@ -5,12 +5,11 @@ export function NewsCard(
     {news}: {news:News}
 ){
     return (
-        <section className="lg:w-100% bg-surface-container p-4 rounded-2xl flex flex-col gap-5 h-fit">
-            <p>{news.id}</p>
+        <section className="lg:w-100% bg-surface-container p-4 rounded-2xl flex flex-col gap-5 h-fit text-wrap break-all">
             <p className="text-2xl">{news.title}</p>
-            <p className="text-s text-wrap">{news.postDate.toLocaleDateString()}</p>
-            <p className="break-words">{news.subject}</p>
-            <FilledButton text="View More" href={"/news/:" + news.id}></FilledButton>
+            <p className="text-s">{news.postDate.toLocaleDateString()}</p>
+            <p>{news.subject}</p>
+            <FilledButton text="View More" href={`/news/:${news.id}`}/>
         </section>
     )
 }
