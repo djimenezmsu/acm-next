@@ -48,7 +48,7 @@ export default async function Newsfeed(
 
     return (
         <article className="w-full max-w-6xl flex flex-col gap-5 mt-20  text-on-surface">
-            <section className="w-full flex flex-row justify-between align-middle">
+            <section className="w-full flex flex-row justify-between">
                 <h1 className="text-on-surface font-bold text-4xl ">{langDict.nav_news}</h1>
                 <FilledButton text={langDict.new_post} href="/news/create" />
             </section>
