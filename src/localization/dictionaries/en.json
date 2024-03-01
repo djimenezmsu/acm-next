@@ -9,5 +9,11 @@
     "home_about_title": "About Us",
     "home_about_description": "Learn about the Murray State ACM chapter and its officers.",
     "home_join_title": "Join the ACM",
-    "home_join_description": "Learn the benefits of becoming a local ACM member."
+    "home_join_description": "Learn the benefits of becoming a local ACM member.",
+    "nav_events": "Events",
+    "nav_news": "News",
+    "nav_join": "Join",
+    "nav_about": "About Us",
+    "nav_login": "Login",
+    "settings_title": "Settings"
 }
