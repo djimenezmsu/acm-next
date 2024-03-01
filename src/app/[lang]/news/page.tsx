@@ -13,7 +13,7 @@ export default async function Newsfeed(
     }
 ) {
     let data: News[] = []
-    const newsFeed = await getNewsfeed(new Date(2024, 1, 1), 10, 0)
+    const newsFeed = await getNewsfeed(new Date(2023, 1, 1), 10, 0)
         .then(result => data = result)
         .catch(error => {
             return (
@@ -59,14 +59,14 @@ export default async function Newsfeed(
                     const sectionIndex = sections.indexOf(section)
                     return (
                         <section className="w-full max-w-6xl flex flex-col gap-5 text-on-surface" key={sectionIndex}>
-                            <h1 className="text-on-surface font-bold text-3xl ">{(sectionIndex % 2 == 0 ? "Fall " : "Spring ") + Math.ceil(maxYear - sectionIndex / 2)}</h1>
-                            <section className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-5 text-on-surface">
+                            <h1 className="text-on-surface font-semibold text-3xl ">{(sectionIndex % 2 == 0 ? "Fall " : "Spring ") + Math.ceil(maxYear - sectionIndex / 2)}</h1>
+                            <ol className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-5 text-on-surface">
                                 {
                                     section.map(announcement => {
                                         return <NewsCard news={announcement} buttonText={langDict.view_more} key={announcement.id} />
                                     })
                                 }
-                            </section>
+                            </ol>
                         </section>
                     )
                 })
