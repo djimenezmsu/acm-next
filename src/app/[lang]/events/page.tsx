@@ -1,4 +1,5 @@
 import { DateFormatter } from "@/components/formatters/date-formatter"
+import { DateRangeFormatter } from "@/components/formatters/date-range-formatter"
 import { FilledButton } from "@/components/material/filled-button"
 import { Icon } from "@/components/material/icon"
 import { AccessLevel, Event, FilterDirection, Semester } from "@/data/types"
@@ -100,7 +101,7 @@ function EventFields(
             <EventField text={event.location} icon='explore' className={fieldClassName} />
 
             {/* Duration */}
-            <EventField text='4:00 PM - 5:00 PM' icon='schedule' className={fieldClassName} />
+            <EventField text={<DateRangeFormatter dateFrom={event.startDate} dateTo={event.endDate} />} icon='schedule' className={fieldClassName} />
 
             {/* Type */}
             {event.type ? <EventField text={event.type.name} icon='book' className={fieldClassName} /> : undefined}

@@ -110,7 +110,7 @@ export default function Navbar(
                             alt={user.givenName}
                             className="rounded-full object-cover"
                         />
-                        {user.givenName}
+                        <h4 className="pr-2">{user.givenName}</h4>
                     </Link>
                 ) : <FilledButton text={langDict.nav_login} href='/api/oauth' />
                 }
