@@ -9,6 +9,8 @@ export enum Pragma {
     DEFAULT
 }
 
+export type Id = number | bigint
+
 // users types
 export enum AccessLevel {
     NON_MEMBER,
@@ -66,4 +68,11 @@ export interface News {
     body: string,
     postDate: Date,
     imageURL: string | null
+}
+
+// event types types
+export interface EventType {
+    id: Id
+    name: string
+    points: number
 }

@@ -34,4 +34,30 @@ export default function init(
         image_url TEXT
     )`).run()
 
+    // event types
+    database.prepare(`CREATE TABLE IF NOT EXISTS event_types (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        name TEXT NOT NULL,
+        points INTEGER NOT NULL
+    )`).run()
+
+    // create default types
+    if (!exists) {
+        database.prepare(`INSERT INTO event_types (name, points) VALUES (?, ?)`).run('Normal', 1)
+        database.prepare(`INSERT INTO event_types (name, points) VALUES (?, ?)`).run('Educational', 2)
+        database.prepare(`INSERT INTO event_types (name, points) VALUES (?, ?)`).run('Officer', 0)
+    }
+
+    // events
+    database.prepare(`CREATE TABLE IF NOT EXISTS events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        title TEXT NOT NULL,
+        location TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        type INTEGER NOT NULL,
+        access_level INTEGER NOT NULL,
+        FOREIGN KEY (type) REFERENCES event_types (id)
+    )`).run()
+
 }

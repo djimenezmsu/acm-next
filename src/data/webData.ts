@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import getDatabase from ".";
-import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News } from "./types";
+import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News, EventType, Id } from "./types";
 
 
 // import database
@@ -390,8 +390,6 @@ function updateSessionSync(
             WHERE token = ?
             `).run([...values, token])
 
-    console.log(token, sets, values)
-
     return getSessionSync(token) as Session
 }
 
@@ -667,6 +665,196 @@ export function deleteNews(
     return new Promise<boolean>((resolve, reject) => {
         try {
             resolve(deleteNewsSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+// ----- EVENT TYPES -----
+
+/**
+ * Synchronously gets the event type associated with the provided id.
+ * 
+ * @param id The ID of the event type to get.
+ * @returns The found EventType or null.
+ */
+function getEventTypeSync(
+    id: Id
+): EventType | null {
+    return db.prepare(`
+    SELECT id, name, points
+    FROM event_types
+    WHERE id = ?
+    `).get(id) as EventType | null
+}
+
+/**
+ * Gets the event type associated with the provided id.
+ * 
+ * @param id The ID of the event type to get.
+ * @returns A promise that resolves with the found EventType or null.
+ */
+export function getEventType(
+    id: Id
+): Promise<EventType | null> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getEventTypeSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously gets and returns every EventType in the database.
+ * 
+ * @returns An array of EventType objects.
+ */
+function getAllEventTypesSync(): EventType[] {
+    return db.prepare(`
+    SELECT id, name, points
+    FROM event_types
+    `).all() as EventType[]
+}
+
+/**
+ * Gets and returns every EventType in the database.
+ * 
+ * @returns A promise that resolves with an array of EventType objects.
+ */
+export function getAllEventTypes(): Promise<EventType[]> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getAllEventTypesSync())
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously creates a new event type in the database.
+ * 
+ * @param eventType The event type to insert without its ID.
+ * @returns The newly created event type.
+ */
+function insertEventTypeSync(
+    eventType: Omit<EventType, 'id'>
+): EventType {
+
+    const eventTypeId = db.prepare(`
+    INSERT INTO event_types (name, points)
+    VALUES (?, ?)
+    `).run(
+        eventType.name,
+        eventType.points
+    ).lastInsertRowid
+
+    const returnEventType = eventType as EventType
+    returnEventType.id = eventTypeId
+    return returnEventType
+}
+
+/**
+ * Creates a new event type in the database.
+ * 
+ * @param eventType The event type to insert without its ID.
+ * @returns A promise that resolves with the newly created event type.
+ */
+export function insertEventType(
+    eventType: Omit<EventType, 'id'>
+): Promise<EventType> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(insertEventTypeSync(eventType))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously updates the values of an EventType according to what is provided.
+ * 
+ * @param eventType A partial that must include the EventType that's to be changed's ID.
+ * @returns The updated EventType
+ */
+function updateEventTypeSync(
+    eventType: Partial<EventType> & Pick<EventType, 'id'>
+): EventType {
+
+    const eventTypeId = eventType.id
+    const sets: string[] = []
+    const values: any[] = []
+
+    // name
+    if (eventType.name) {
+        sets.push('name = ?')
+        values.push(eventType.name)
+    }
+
+    // points
+    if (eventType.points) {
+        sets.push('points = ?')
+        values.push(eventType.points)
+    }
+
+    // build the SQL query to update the desired values
+    if (sets.length > 0) db.prepare(`
+            UPDATE event_types
+            SET ${sets.join(', ')}
+            WHERE id = ?
+            `).run([...values, eventTypeId])
+
+    return getEventTypeSync(eventTypeId) as EventType
+}
+
+/**
+ * Updates the values of an EventType according to what is provided.
+ * 
+ * @param eventType A partial that must include the EventType that's to be changed's ID.
+ * @returns A promise that resolves with the updated EventType
+ */
+export function updateEventType(
+    eventType: Partial<EventType> & Pick<EventType, 'id'>
+): Promise<EventType> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(updateEventTypeSync(eventType))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously deletes a single EventType from the database.
+ * 
+ * @param id The id of the EventType to delete.
+ */
+function deleteEventTypeSync(
+    id: Id
+) {
+    db.prepare(`
+    DELETE FROM event_types
+    WHERE id = ?
+    `).run(id)
+}
+
+/**
+ * Deletes a single EventType from the database.
+ * 
+ * @param id The id of the EventType to delete.
+ * @returns A promise that resolves when the EventType is deleted.
+ */
+export function deleteEventType(
+    id: Id
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            resolve(deleteEventTypeSync(id))
         } catch (error) {
             reject(error)
         }

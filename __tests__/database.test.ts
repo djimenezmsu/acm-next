@@ -1,8 +1,8 @@
-import { AccessLevel, News, User } from "@/data/types";
+import { AccessLevel, EventType, News, User } from "@/data/types";
 import { 
   deleteNews, getNews, getNewsfeed, insertNews, updateNews,
   getUser, insertUser, deleteUser, updateUser, userExists,
-  deleteSession, getSession, insertSession, updateSession
+  deleteSession, getSession, insertSession, updateSession, getEventType, getAllEventTypes, insertEventType, updateEventType, deleteEventType
        } from "@/data/webData";
 
 describe('Database', () => {
@@ -143,5 +143,75 @@ describe('Database', () => {
     test('can delete an announcement', async () => {
         await deleteNews(newsRecordId)
         .then(result => expect(result).toBe(true))
+    })
+
+    // event types tests
+    const defaultEventTypes: EventType[] = [
+        {
+            id: 1,
+            name: 'Normal',
+            points: 1
+        },
+        {
+            id: 2,
+            name: 'Educational',
+            points: 2
+        },
+        {
+            id: 3,
+            name: 'Officer',
+            points: 0
+        },
+    ]
+
+    test('can get an EventType', async () => {
+        await getEventType(1)
+            .then(result => expect(result).toBeDefined())
+    })
+
+    test('initial "Normal" EventType exists', async () => {
+        await getEventType(1)
+            .then(result => expect(result).toEqual(defaultEventTypes[0]))
+    })
+    test('initial "Educational" EventType exists', async () => {
+        await getEventType(2)
+            .then(result => expect(result).toEqual(defaultEventTypes[1]))
+    })
+    test('initial "Officer" EventType exists', async () => {
+        await getEventType(3)
+            .then(result => expect(result).toEqual(defaultEventTypes[2]))
+    })
+
+    test('can get all EventTypes', async () => {
+        await getAllEventTypes()
+            .then(types => expect(types).toEqual(defaultEventTypes))
+    })
+
+    test('can insert an EventType', async () => {
+        await insertEventType({
+            name: 'Department',
+            points: 0
+        })
+            .then(newType => expect(newType).toEqual({
+                id: 4,
+                name: 'Department',
+                points: 0
+            }))
+    })
+
+    test('can update an EventType', async () => {
+        await updateEventType({
+            id: 4,
+            name: 'Department(s)'
+        })
+            .then(updatedType => expect(updatedType).toEqual({
+                id: 4,
+                name: 'Department(s)',
+                points: 0
+            }))
+    })
+
+    test('can delete an EventType', async () => {
+        await deleteEventType(4).then(_ => true)
     })
 })
