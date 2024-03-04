@@ -11,6 +11,11 @@ export enum Pragma {
 
 export type Id = number | bigint
 
+export enum FilterDirection {
+    DESCENDING,
+    ASCENDING
+}
+
 // users types
 export enum AccessLevel {
     NON_MEMBER,
@@ -75,4 +80,34 @@ export interface EventType {
     id: Id
     name: string
     points: number
+}
+
+// event types
+export interface RawEvent {
+    id: Id
+    title: string
+    location: string
+    start_date: string
+    end_date: string
+    type: number | null
+    access_level: number
+}
+
+export interface Event {
+    id: Id
+    title: string
+    location: string
+    startDate: Date
+    endDate: Date
+    type: EventType | null
+    accessLevel: AccessLevel
+}
+
+export interface EventFilterParams {
+    fromDate?: Date
+    toDate?: Date
+    offset?: number
+    minAccessLevel?: AccessLevel
+    maxEntries?: number
+    direction?: FilterDirection
 }

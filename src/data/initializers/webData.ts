@@ -55,9 +55,9 @@ export default function init(
         location TEXT NOT NULL,
         start_date TEXT NOT NULL,
         end_date TEXT NOT NULL,
-        type INTEGER NOT NULL,
+        type INTEGER,
         access_level INTEGER NOT NULL,
-        FOREIGN KEY (type) REFERENCES event_types (id)
+        FOREIGN KEY (type) REFERENCES event_types (id) ON DELETE SET NULL
     )`).run()
 
 }
