@@ -51,19 +51,18 @@ export default async function EventsPage(
                                 <EventFields event={upcomingEvent} className="justify-start mt-2" fieldClassName="flex-row-reverse" />
                             ) : (
                                 <section className="flex-1 flex flex-col justify-end">
-                                    <FilledButton text={langDict.events_attend} href={`/api/events/attend?id=${upcomingEvent.id}`} className="w-fit mt-2 bg-on-primary text-primary before:bg-primary"/>
+                                    <FilledButton text={langDict.events_attend} href={`/api/events/attend?id=${upcomingEvent.id}`} className="w-fit mt-2 bg-on-primary text-primary before:bg-primary" />
                                 </section>
                             ) : undefined}
                     </section>
-                    {upcomingEventInProgress ?
-                        accessLevel >= showQRCodeMinAccessLevel ? (
-                            <QRCode className="w-56 h-56 p-3 bg-white rounded-3xl" value={`/api/events/attend?id=${upcomingEvent.id}`} />
-                        ) : (
-                            <EventFields event={upcomingEvent} className="sm:items-end items-center justify-center" />
-                        ) : undefined}
+                    {upcomingEventInProgress && accessLevel >= showQRCodeMinAccessLevel ? (
+                        <QRCode className="w-56 h-56 p-3 bg-white rounded-3xl" value={`/api/events/attend?id=${upcomingEvent.id}`} />
+                    ) : (
+                        <EventFields event={upcomingEvent} className="sm:items-end items-center justify-center" />
+                    )}
                 </section>
             ) : undefined}
-            
+
 
             <h3 className="text-2xl font-semibold">Future Events</h3>
             {futureEvents.map(event => {
