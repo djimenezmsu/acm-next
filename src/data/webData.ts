@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import getDatabase from ".";
-import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News } from "./types";
+import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News, EventType, Id, RawEvent, Event, EventFilterParams, FilterDirection } from "./types";
 
 
 // import database
@@ -390,8 +390,6 @@ function updateSessionSync(
             WHERE token = ?
             `).run([...values, token])
 
-    console.log(token, sets, values)
-
     return getSessionSync(token) as Session
 }
 
@@ -662,6 +660,449 @@ export function deleteNews(
     return new Promise<boolean>((resolve, reject) => {
         try {
             resolve(deleteNewsSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+// ----- EVENT TYPES --------------------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Synchronously gets the event type associated with the provided id.
+ * 
+ * @param id The ID of the event type to get.
+ * @returns The found EventType or null.
+ */
+function getEventTypeSync(
+    id: Id
+): EventType | null {
+    return db.prepare(`
+    SELECT id, name, points
+    FROM event_types
+    WHERE id = ?
+    `).get(id) as EventType | null
+}
+
+/**
+ * Gets the event type associated with the provided id.
+ * 
+ * @param id The ID of the event type to get.
+ * @returns A promise that resolves with the found EventType or null.
+ */
+export function getEventType(
+    id: Id
+): Promise<EventType | null> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getEventTypeSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously gets and returns every EventType in the database.
+ * 
+ * @returns An array of EventType objects.
+ */
+function getAllEventTypesSync(): EventType[] {
+    return db.prepare(`
+    SELECT id, name, points
+    FROM event_types
+    `).all() as EventType[]
+}
+
+/**
+ * Gets and returns every EventType in the database.
+ * 
+ * @returns A promise that resolves with an array of EventType objects.
+ */
+export function getAllEventTypes(): Promise<EventType[]> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getAllEventTypesSync())
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously creates a new event type in the database.
+ * 
+ * @param eventType The event type to insert without its ID.
+ * @returns The newly created event type.
+ */
+function insertEventTypeSync(
+    eventType: Omit<EventType, 'id'>
+): EventType {
+
+    const eventTypeId = db.prepare(`
+    INSERT INTO event_types (name, points)
+    VALUES (?, ?)
+    `).run(
+        eventType.name,
+        eventType.points
+    ).lastInsertRowid
+
+    const returnEventType = eventType as EventType
+    returnEventType.id = eventTypeId
+    return returnEventType
+}
+
+/**
+ * Creates a new event type in the database.
+ * 
+ * @param eventType The event type to insert without its ID.
+ * @returns A promise that resolves with the newly created event type.
+ */
+export function insertEventType(
+    eventType: Omit<EventType, 'id'>
+): Promise<EventType> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(insertEventTypeSync(eventType))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously updates the values of an EventType according to what is provided.
+ * 
+ * @param eventType A partial that must include the EventType that's to be changed's ID.
+ * @returns The updated EventType
+ */
+function updateEventTypeSync(
+    eventType: Partial<EventType> & Pick<EventType, 'id'>
+): EventType {
+
+    const eventTypeId = eventType.id
+    const sets: string[] = []
+    const values: any[] = []
+
+    // name
+    if (eventType.name) {
+        sets.push('name = ?')
+        values.push(eventType.name)
+    }
+
+    // points
+    if (eventType.points) {
+        sets.push('points = ?')
+        values.push(eventType.points)
+    }
+
+    // build the SQL query to update the desired values
+    if (sets.length > 0) db.prepare(`
+            UPDATE event_types
+            SET ${sets.join(', ')}
+            WHERE id = ?
+            `).run([...values, eventTypeId])
+
+    return getEventTypeSync(eventTypeId) as EventType
+}
+
+/**
+ * Updates the values of an EventType according to what is provided.
+ * 
+ * @param eventType A partial that must include the EventType that's to be changed's ID.
+ * @returns A promise that resolves with the updated EventType
+ */
+export function updateEventType(
+    eventType: Partial<EventType> & Pick<EventType, 'id'>
+): Promise<EventType> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(updateEventTypeSync(eventType))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously deletes a single EventType from the database.
+ * 
+ * @param id The id of the EventType to delete.
+ */
+function deleteEventTypeSync(
+    id: Id
+) {
+    db.prepare(`
+    DELETE FROM event_types
+    WHERE id = ?
+    `).run(id)
+}
+
+/**
+ * Deletes a single EventType from the database.
+ * 
+ * @param id The id of the EventType to delete.
+ * @returns A promise that resolves when the EventType is deleted.
+ */
+export function deleteEventType(
+    id: Id
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            resolve(deleteEventTypeSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+// ----- EVENTS --------------------------------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Converts a RawEvent object into an Event object.
+ * 
+ * @param rawEvent The RawEvent to convert.
+ * @returns A converted Event object.
+ */
+function buildEvent(
+    rawEvent: RawEvent
+): Event {
+    return {
+        id: rawEvent.id,
+        title: rawEvent.title,
+        location: rawEvent.location,
+        startDate: new Date(rawEvent.start_date),
+        endDate: new Date(rawEvent.end_date),
+        type: rawEvent.type === null ? null : getEventTypeSync(rawEvent.type),
+        accessLevel: rawEvent.access_level
+    }
+}
+
+/**
+ * Synchronously performs a filtered query for multiple events in the database.
+ * 
+ * @param filterParams The filter parameters for this query.
+ * @returns A list of Events matching the provided parameters.
+ */
+function filterEventsSync(
+    filterParams: EventFilterParams = {}
+): Event[] {
+
+    const queryParams: { [key: string]: any } = {
+        fromDate: filterParams.fromDate ? filterParams.fromDate.toISOString() : null,
+        toDate: filterParams.toDate ? filterParams.toDate.toISOString() : null,
+        offset: filterParams.offset || 0,
+        accessLevel: filterParams.minAccessLevel || AccessLevel.NON_MEMBER,
+        maxEntries: filterParams.maxEntries || 50,
+        direction: filterParams.direction == undefined ? FilterDirection.DESCENDING : filterParams.direction
+    }
+
+    const rawEvents = db.prepare(`
+    SELECT id, title, location, start_date, end_date, type, access_level
+    FROM events
+    WHERE (:fromDate IS NULL OR DATE(start_date) >= DATE(:fromDate))
+        AND (:toDate IS NULL OR DATE(:toDate) > DATE(end_date))
+        AND (:accessLevel IS NULL OR :accessLevel >= access_level)
+    ORDER BY
+        CASE WHEN :direction = 0 THEN 1 ELSE start_date END ASC,
+        CASE WHEN :direction = 1 THEN 1 ELSE start_date END DESC
+    LIMIT :maxEntries
+    OFFSET :offset`).all(queryParams) as RawEvent[]
+
+    return rawEvents.map(rawEvent => buildEvent(rawEvent))
+}
+
+/**
+ * Performs a filtered query for multiple events in the database.
+ * 
+ * @param filterParams The filter parameters for this query.
+ * @returns Returns a promise that resolves with a list of Events matching the provided parameters.
+ */
+export function filterEvents(
+    filterParams: EventFilterParams = {}
+): Promise<Event[]> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(filterEventsSync(filterParams))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously gets an Event from the database.
+ * 
+ * @param id The ID of the Event to get.
+ * @returns The Event that was found or null.
+ */
+function getEventSync(
+    id: Id
+): Event | null {
+    const rawEvent = db.prepare(`
+    SELECT id, title, location, start_date, end_date, type, access_level
+    FROM events
+    WHERE id = ?`).get(id) as RawEvent | null
+
+    return rawEvent ? buildEvent(rawEvent) : null
+}
+
+/**
+ * Gets an Event from the database.
+ * 
+ * @param id The ID of the Event to get.
+ * @returns A promise that resolves with the Event that was found or null.
+ */
+export function getEvent(
+    id: Id
+): Promise<Event | null> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getEventSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously inserts a new Event into the database.
+ * 
+ * @param newEvent The event to insert minus its ID.
+ * @returns The newly-created Event.
+ */
+function insertEventSync(
+    newEvent: Omit<Event, 'id'>
+): Event {
+    const eventId = db.prepare(`
+    INSERT INTO events (title, location, start_date, end_date, type, access_level)
+    VALUES (?, ?, ?, ?, ?, ?)
+    `).run(
+        newEvent.title,
+        newEvent.location,
+        newEvent.startDate.toISOString(),
+        newEvent.endDate.toISOString(),
+        newEvent.type ? newEvent.type.id : null,
+        newEvent.accessLevel
+    ).lastInsertRowid
+
+    const returnEvent = newEvent as Event
+    returnEvent.id = eventId
+    return returnEvent
+}
+
+/**
+ * Inserts a new Event into the database.
+ * 
+ * @param newEvent The event to insert minus its ID.
+ * @returns A promise that resolves with the newly-created Event.
+ */
+export function insertEvent(
+    newEvent: Omit<Event, 'id'>
+): Promise<Event> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(insertEventSync(newEvent))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously updates an Event in the database.
+ * 
+ * @param event The values of the Event to change.
+ * @returns The updated Event object.
+ */
+function updateEventSync(
+    event: Partial<Event> & Pick<Event, 'id'>
+): Event {
+    // maps the fields of the Event object to their database counterparts
+    const fields: Record<string, string> = {
+        title: 'title',
+        location: 'location',
+        startDate: 'start_date',
+        endDate: 'end_date',
+        type: 'type',
+        accessLevel: 'access_level'
+    }
+
+    const sets: string[] = [] // list of strings like '[field] = ?'
+    const values: any[] = [] // the values that will replace "?" in the final query
+
+    // iterate the entire Event object
+    for (const key in event) {
+        const value = event[key as keyof typeof event]
+        const field = fields[key]
+        if (field && value !== undefined) {
+            sets.push(`${field} = ?`) // create set value
+            // convert value to a type storable in the database, and add it to the values array.
+            switch(field) {
+                case 'type':
+                    values.push(value === null ? null : (value as EventType).id)
+                    break;
+                default:
+                    values.push(value instanceof Date ? value.toISOString() : value)
+            }
+        }
+    }
+
+    const id = event.id
+
+    // build the SQL query to update the desired values
+    if (sets.length > 0) db.prepare(`
+            UPDATE events
+            SET ${sets.join(', ')}
+            WHERE id = ?
+            `).run([...values, id])
+
+    return getEventSync(id) as Event
+}
+
+/**
+ * Updates an Event in the database.
+ * 
+ * @param event The values of the Event to change.
+ * @returns A promise that resolves with the updated Event object.
+ */
+export function updateEvent(
+    event: Partial<Event> & Pick<Event, 'id'>
+): Promise<Event> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(updateEventSync(event))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously deletes a single event from the database.
+ * 
+ * @param id The ID of the event to delete.
+ */
+function deleteEventSync(
+    id: Id
+) {
+    db.prepare(`
+    DELETE FROM events
+    WHERE id = ?`).run(id)
+}
+
+/**
+ * Deletes a single event from the database.
+ * 
+ * @param id The ID of the event to delete.
+ * @returns A promise that resolves when the event is deleted.
+ */
+export function deleteEvent(
+    id: Id
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            resolve(deleteEventSync(id))
         } catch (error) {
             reject(error)
         }
