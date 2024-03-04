@@ -16,6 +16,11 @@ export enum FilterDirection {
     ASCENDING
 }
 
+export enum Semester {
+    SPRING,
+    FALL
+}
+
 // users types
 export enum AccessLevel {
     NON_MEMBER,
