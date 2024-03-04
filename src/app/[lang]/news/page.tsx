@@ -4,6 +4,7 @@ import { NewsCard } from "@/components/news-card";
 import { Divider } from "@/components/material/divider";
 import { FilledButton } from "@/components/material/filled-button";
 import { Locale, getDictionary } from "@/localization";
+import { PageHeader } from "@/components/page-header";
 
 export default async function Newsfeed(
     {
@@ -46,10 +47,10 @@ export default async function Newsfeed(
 
     return (
         <article className="w-full max-w-6xl flex flex-col gap-5 mt-20 text-on-surface">
-            <section className="w-full flex items-end">
-                <h1 className="text-on-surface md:text-5xl text-4xl font-bold flex-1">{langDict.nav_news}</h1>
-                <FilledButton text={langDict.new_post} href="/news/create" />
-            </section>
+            <PageHeader
+                text={langDict.nav_news}
+                actions={<FilledButton text={langDict.new_post} href="/news/create" />}
+            />
             <Divider />
             {
                 sections.map(section => {
