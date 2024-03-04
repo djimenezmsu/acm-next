@@ -1,6 +1,5 @@
 import { News } from "@/data/types";
 import { FilledButton } from "./material/filled-button";
-import { Locale } from "@/localization";
 
 export async function NewsCard(
     {news, buttonText}: {news:News, buttonText: string},

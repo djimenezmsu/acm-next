@@ -136,8 +136,15 @@ describe('Database', () => {
     })
 
     test('can get newsfeed', async () => {
-        await getNewsfeed(new Date(2000, 1, 1), 1, 0)
-            .then(result => expect(result).toBeDefined())
+        await getNewsfeed(50, 0)
+            .then(result => expect(result).toContain({
+                id: newsRecordId,
+                title: "Test Title",
+                subject: "Test Subject",
+                body: "Test Body",
+                postDate: testDate,
+                imageURL: null
+            }))
     })
 
     test('can delete an announcement', async () => {
