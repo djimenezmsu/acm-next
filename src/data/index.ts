@@ -23,7 +23,7 @@ const dbPragmas = {
 
 const databaseMetadata = {
     [Databases.WEB_DATA]: {
-        path: 'bot_data.db',
+        path: 'web_data.db',
         pragma: Pragma.DEFAULT,
         init: initData
     }

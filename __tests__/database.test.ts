@@ -1,9 +1,9 @@
-import { AccessLevel, News, User } from "@/data/types";
-import { 
-  deleteNews, getNews, getNewsfeed, insertNews, updateNews,
-  getUser, insertUser, deleteUser, updateUser, userExists,
-  deleteSession, getSession, insertSession, updateSession
-       } from "@/data/webData";
+import { AccessLevel, Event, EventType, News, User } from "@/data/types";
+import {
+    deleteNews, getNews, getNewsfeed, insertNews, updateNews,
+    getUser, insertUser, deleteUser, updateUser, userExists,
+    deleteSession, getSession, insertSession, updateSession, getEventType, getAllEventTypes, insertEventType, updateEventType, deleteEventType, insertEvent, deleteEvent, updateEvent, getEvent, filterEvents
+} from "@/data/webData";
 
 describe('Database', () => {
     // users table tests
@@ -99,49 +99,224 @@ describe('Database', () => {
     let testDate = new Date()
     test('can insert an announcement', async () => {
         await insertNews(
-        "Test Title",
-        null,
-        "Test Body",
-        testDate,
-        null
-    )
-        .then(newsId => {
-            newsRecordId = newsId
-            expect(newsId).toBeGreaterThan(0)
-        })
+            "Test Title",
+            null,
+            "Test Body",
+            testDate,
+            null
+        )
+            .then(newsId => {
+                newsRecordId = newsId
+                expect(newsId).toBeGreaterThan(0)
+            })
     })
 
     test('can get an announcement', async () => {
         await getNews(newsRecordId)
-        .then(result => expect(result).toEqual({
-        id: newsRecordId,
-        title: "Test Title",
-        subject: null,
-        body: "Test Body",
-        postDate: testDate,
-        imageURL: null
-        } as News))
+            .then(result => expect(result).toEqual({
+                id: newsRecordId,
+                title: "Test Title",
+                subject: null,
+                body: "Test Body",
+                postDate: testDate,
+                imageURL: null
+            } as News))
     })
-    
+
     test('can update an announcement', async () => {
         await updateNews({
-        id: newsRecordId,
-        title: "Test Title",
-        subject: "Test Subject",
-        body: "Test Body",
-        postDate: testDate,
-        imageURL: null
+            id: newsRecordId,
+            title: "Test Title",
+            subject: "Test Subject",
+            body: "Test Body",
+            postDate: testDate,
+            imageURL: null
         } as News)
-        .then(result => expect(result).toBe(true))
+            .then(result => expect(result).toBe(true))
     })
 
     test('can get newsfeed', async () => {
-        await getNewsfeed(new Date(2000, 1, 1), 1, 0)
-        .then(result => expect(result).toBeDefined())
+        await getNewsfeed(50, 0)
+            .then(result => expect(result).toContain({
+                id: newsRecordId,
+                title: "Test Title",
+                subject: "Test Subject",
+                body: "Test Body",
+                postDate: testDate,
+                imageURL: null
+            }))
     })
 
     test('can delete an announcement', async () => {
         await deleteNews(newsRecordId)
-        .then(result => expect(result).toBe(true))
+            .then(result => expect(result).toBe(true))
+    })
+
+    // event types tests
+    const defaultEventTypes: EventType[] = [
+        {
+            id: 1,
+            name: 'Normal',
+            points: 1
+        },
+        {
+            id: 2,
+            name: 'Educational',
+            points: 2
+        },
+        {
+            id: 3,
+            name: 'Officer',
+            points: 0
+        },
+    ]
+
+    test('can get an EventType', async () => {
+        await getEventType(1)
+            .then(result => expect(result).toBeDefined())
+    })
+
+    test('initial "Normal" EventType exists', async () => {
+        await getEventType(1)
+            .then(result => expect(result).toEqual(defaultEventTypes[0]))
+    })
+    test('initial "Educational" EventType exists', async () => {
+        await getEventType(2)
+            .then(result => expect(result).toEqual(defaultEventTypes[1]))
+    })
+    test('initial "Officer" EventType exists', async () => {
+        await getEventType(3)
+            .then(result => expect(result).toEqual(defaultEventTypes[2]))
+    })
+
+    test('can get all EventTypes', async () => {
+        await getAllEventTypes()
+            .then(types => expect(types).toEqual(defaultEventTypes))
+    })
+
+    test('can insert an EventType', async () => {
+        const newEventType = await insertEventType({
+            name: 'Department',
+            points: 0
+        })
+        const id = newEventType.id
+
+        // delete
+        deleteEventType(id)
+
+        expect(newEventType).toEqual({
+            id: id,
+            name: 'Department',
+            points: 0
+        })
+    })
+
+    test('can update an EventType', async () => {
+        const newEventType = await insertEventType({
+            name: 'Department',
+            points: 0
+        })
+        const id = newEventType.id
+
+        // update
+        const updated = await updateEventType({
+            id: id,
+            name: 'Department(s)'
+        })
+
+        // delete
+        deleteEventType(id)
+
+        expect(updated).toEqual({
+            id: id,
+            name: 'Department(s)',
+            points: 0
+        })
+    })
+
+    test('can delete an EventType', async () => {
+        const newEventType = await insertEventType({
+            name: 'Department',
+            points: 0
+        })
+        await deleteEventType(newEventType.id)
+        return true
+    })
+
+    // events tests
+    const dateNow = new Date()
+    const testEvent = {
+        title: 'Bear Cloud Urchin',
+        location: 'Positive Zebra',
+        startDate: dateNow,
+        endDate: new Date(dateNow.getTime() + 100000),
+        type: defaultEventTypes[0],
+        accessLevel: AccessLevel.NON_MEMBER
+    } as Event
+
+    test('can insert an event', async () => {
+        const newEvent = await insertEvent(testEvent)
+
+        deleteEvent(newEvent.id)
+
+        expect(newEvent).toEqual({
+            ...testEvent,
+            id: newEvent.id
+        })
+    })
+
+    test('can get an event', async () => {
+        const newEvent = await insertEvent(testEvent)
+        const eventId = newEvent.id
+
+        const fetched = await getEvent(eventId)
+
+        deleteEvent(eventId)
+
+        expect(fetched).toEqual({
+            ...testEvent,
+            id: eventId
+        })
+    })
+
+    test('can update an event', async () => {
+        const newEvent = await insertEvent(testEvent)
+        const eventId = newEvent.id
+
+        // update
+        const updated = await updateEvent({
+            id: eventId,
+            title: 'Red Sea Shore',
+            accessLevel: AccessLevel.OFFICER
+        })
+
+        // delete
+        deleteEvent(eventId)
+
+        expect(updated).toEqual({
+            ...testEvent,
+            id: eventId,
+            title: 'Red Sea Shore',
+            accessLevel: AccessLevel.OFFICER
+        })
+    })
+
+    test('can delete an event', async () => {
+        const newEvent = await insertEvent(testEvent)
+        await deleteEvent(newEvent.id)
+        return true
+    })
+
+    test('can filter events', async () => {
+        const newEvent = await insertEvent(testEvent)
+
+        const filtered = await filterEvents({
+            fromDate: dateNow
+        })
+
+        // delete
+        deleteEvent(newEvent.id)
+
+        expect(filtered).toEqual([testEvent])
     })
 })
