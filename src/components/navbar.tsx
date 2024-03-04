@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { Icon } from "./material/icon"
 import { IconButton } from "./material/icon-button"
-import Image from "./image"
 import { ModalDrawer } from "./transitions/modal-drawer"
 import { FilledButton } from "./material/filled-button"
+import Image from "next/image"
 
 export default function Navbar(
     {
