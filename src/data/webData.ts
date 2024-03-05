@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import getDatabase from ".";
-import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News, EventType, Id, RawEvent, Event, EventFilterParams, FilterDirection } from "./types";
+import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News, EventType, Id, RawEvent, Event, EventFilterParams, FilterDirection, EventFilterResult, RawFilterEvent } from "./types";
 
 
 // import database
@@ -886,7 +886,7 @@ function buildEvent(
  */
 function filterEventsSync(
     filterParams: EventFilterParams = {}
-): Event[] {
+): EventFilterResult {
 
     const queryParams: { [key: string]: any } = {
         fromDate: filterParams.fromDate ? filterParams.fromDate.toISOString() : null,
@@ -898,18 +898,28 @@ function filterEventsSync(
     }
 
     const rawEvents = db.prepare(`
-    SELECT id, title, location, start_date, end_date, type, access_level
+    SELECT id, 
+        title, 
+        location, 
+        start_date, 
+        end_date, 
+        type, 
+        access_level,
+        COUNT(*) OVER() as total_count
     FROM events
     WHERE (:fromDate IS NULL OR DATE(start_date) >= DATE(:fromDate))
-        AND (:toDate IS NULL OR DATE(:toDate) > DATE(end_date))
+        AND (:toDate IS NULL OR DATE(:toDate) >= DATE(end_date))
         AND (:accessLevel IS NULL OR :accessLevel >= access_level)
     ORDER BY
         CASE WHEN :direction = 0 THEN 1 ELSE start_date END ASC,
         CASE WHEN :direction = 1 THEN 1 ELSE start_date END DESC
     LIMIT :maxEntries
-    OFFSET :offset`).all(queryParams) as RawEvent[]
+    OFFSET :offset`).all(queryParams) as RawFilterEvent[]
 
-    return rawEvents.map(rawEvent => buildEvent(rawEvent))
+    return {
+        totalCount: rawEvents[0]?.total_count || 0,
+        results: rawEvents.map(rawEvent => buildEvent(rawEvent))
+    }
 }
 
 /**
@@ -920,7 +930,7 @@ function filterEventsSync(
  */
 export function filterEvents(
     filterParams: EventFilterParams = {}
-): Promise<Event[]> {
+): Promise<EventFilterResult> {
     return new Promise((resolve, reject) => {
         try {
             resolve(filterEventsSync(filterParams))

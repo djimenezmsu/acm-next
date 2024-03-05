@@ -21,5 +21,7 @@
     "new_post": "",
     "view_more": "",
     "events_title": "",
-    "events_attend": ""
+    "events_attend": "",
+    "events_future": "",
+    "events_past": ""
 }

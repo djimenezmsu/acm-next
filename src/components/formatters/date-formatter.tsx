@@ -1,5 +1,8 @@
 'use client'
-const dateFormatter = new Intl.DateTimeFormat(undefined, {
+
+import { DateFormatterMode } from "./types"
+
+const longDateFormatter = new Intl.DateTimeFormat(undefined, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -7,21 +10,28 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
     minute: '2-digit',
     hour12: true
 })
-const shortenedDateFormatter = new Intl.DateTimeFormat(undefined, {
-    month: 'numeric',
-    day: '2-digit',
+const narrowDateFormatter = new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+})
+const shortDateFormatter = new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    day: 'numeric',
 })
 
 export function DateFormatter(
     {
         date,
-        compact = false
+        mode = DateFormatterMode.LONG
     }: {
         date: Date
-        compact?: boolean
+        mode?: DateFormatterMode
     }
 ) {
-    const formatter = compact ? shortenedDateFormatter : dateFormatter
+    const formatter = mode === DateFormatterMode.LONG ? longDateFormatter
+        : mode === DateFormatterMode.NARROW ? narrowDateFormatter
+            : shortDateFormatter
     return (
         <time dateTime={date.toISOString()}>
             {formatter.format(date)}
