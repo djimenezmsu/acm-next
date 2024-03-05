@@ -1,9 +1,11 @@
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { DateRangeFormatter } from "@/components/formatters/date-range-formatter"
 import { DateFormatterMode } from "@/components/formatters/types"
+import { BaseButton } from "@/components/material/base-button"
 import { Divider } from "@/components/material/divider"
 import { FilledButton } from "@/components/material/filled-button"
 import { Icon } from "@/components/material/icon"
+import { PageSelector } from "@/components/page-selector"
 import { AccessLevel, Event, FilterDirection, Semester } from "@/data/types"
 import { filterEvents } from "@/data/webData"
 import { getActiveSession } from "@/lib/oauth"
@@ -13,7 +15,7 @@ import Link from "next/link"
 import QRCode from "react-qr-code"
 
 const showQRCodeMinAccessLevel = AccessLevel.OFFICER
-const entriesPerPage = 50
+const entriesPerPage = 10
 
 export default async function EventsPage(
     {
@@ -32,7 +34,7 @@ export default async function EventsPage(
 
     // get session & access level
     const session = await getActiveSession(cookies())
-    const accessLevel = 0//session ? session.user.accessLevel : AccessLevel.NON_MEMBER
+    const accessLevel = session ? session.user.accessLevel : AccessLevel.NON_MEMBER
 
     // parse search params
     const currentPage = Math.max(Number.parseInt(searchParams.page) || 0, 0) // parse the page search parameter, ensuring that it is >= 1
@@ -47,8 +49,9 @@ export default async function EventsPage(
         direction: FilterDirection.ASCENDING,
         maxEntries: 1
     })).results[0] as Event | null
+
     // check whether the upcoming event is in progress
-    const upcomingEventInProgress = true//upcomingEvent ? (dateNow >= upcomingEvent.startDate && upcomingEvent.endDate > dateNow) : false
+    const upcomingEventInProgress = upcomingEvent ? (dateNow >= upcomingEvent.startDate && upcomingEvent.endDate > dateNow) : false
 
     // get events in the future only if we're on the first page.
     const futureEvents = currentPage === 0 ? await filterEvents({
@@ -58,11 +61,12 @@ export default async function EventsPage(
         direction: FilterDirection.ASCENDING
     }) : undefined
 
+    const currentOffset = currentPage * entriesPerPage
     const pastEvents = await filterEvents({
         toDate: dateNow,
         minAccessLevel: accessLevel,
         maxEntries: entriesPerPage,
-        offset: currentPage * entriesPerPage
+        offset: currentOffset
     })
 
     return (
@@ -82,7 +86,7 @@ export default async function EventsPage(
                                 <EventFields event={upcomingEvent} className="justify-start mt-2" fieldClassName="flex-row-reverse" />
                             ) : (
                                 <section className="flex-1 flex-col justify-end">
-                                    <FilledButton text={langDict.events_attend} href={`/api/events/attend?id=${upcomingEvent.id}`} className="w-fit mt-2 bg-on-primary text-primary before:bg-on-primary" />
+                                    <BaseButton text={langDict.events_attend} href={`/api/events/attend?id=${upcomingEvent.id}`} className="w-fit mt-2 bg-on-primary text-primary before:bg-on-primary" />
                                 </section>
                             ) : undefined}
                     </section>
@@ -109,6 +113,13 @@ export default async function EventsPage(
                 event={event}
             />)}
             </ul>
+
+            <PageSelector 
+                currentOffset={currentOffset}
+                totalCount={pastEvents.totalCount}
+                pageSize={entriesPerPage}
+                href=''
+            />
 
         </article>
     )
@@ -169,7 +180,7 @@ function FutureEventItem(
     }
 ) {
     return (
-        <li className="w-full flex sm:flex-row flex-col gap-3 items-center py-3 px-5 rounded-2xl border-2 border-outline">
+        <li className="w-full flex sm:flex-row flex-col gap-3 items-center py-3 px-5 rounded-2xl bg-surface-container">
             <Link href={`./events/${event.id}`} className="text-2xl font-semibold flex-1 hover:text-primary transition-colors">{event.title}</Link>
             <section className="flex gap-2 flex-row items-center">
                 <Icon icon='calendar_month' />
@@ -186,7 +197,7 @@ function PastEventItem(
     }
 ) {
     return (
-        <li className="w-full flex sm:flex-row flex-col gap-3 items-center py-3 px-5 rounded-2xl bg-surface-container">
+        <li className="w-full flex sm:flex-row flex-col gap-3 items-center py-3 px-5 rounded-2xl border-2 border-outline ">
             <Link href={`./events/${event.id}`} className="text-2xl font-semibold flex-1 hover:text-primary transition-colors">{event.title}</Link>
             <section className="flex gap-2 flex-row items-center">
                 <Icon icon='calendar_month' />

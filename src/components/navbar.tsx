@@ -100,23 +100,21 @@ export default function Navbar(
                     </div>
                 </ul>
 
-                {/* login/account button */}
-                {user ? (
-                    <Link href={`/${lang}/account`} className="relative bg-surface-container text-base transition-colors hover:text-primary text-on-surface font-semibold rounded-full h-10 w-fit px-3 gap-3 flex items-center before:transition-opacity before:absolute before:w-full before:h-full before:left-0 before:top-0 before:rounded-full before:opacity-0 before:bg-primary before:hover:opacity-[0.05]">
-                        <Image
-                            height={28}
-                            width={28}
-                            src={user.picture}
-                            alt={user.givenName}
-                            className="rounded-full object-cover"
-                        />
-                        <h4 className="pr-2">{user.givenName}</h4>
-                    </Link>
-                ) : <FilledButton text={langDict.nav_login} href='/api/oauth' />
-                }
-
                 {/* settings button */}
                 <IconButton icon='settings' className='sm:flex hidden' href={`/${lang}/settings`} />
+                
+                {/* login/account button */}
+                {user ? (
+                <Link href={`/${lang}/account`} className="h-8 w-8 rounded-full">
+                    <Image
+                        height={32}
+                        width={32}
+                        src={user.picture}
+                        alt={user.givenName}
+                        className="rounded-full object-cover"
+                    />
+                </Link>
+                ) : <FilledButton text={langDict.nav_login} href='/api/oauth' />}
             </nav>
         </header>
     )
