@@ -26,8 +26,10 @@ export default async function CreateEventPage() {
     }
 
     return (
-        <CreateEventForm
+        <article className="w-full flex flex-col gap-5">
+            <CreateEventForm
             eventTypeOptions={eventTypeOptions}
-        />
+            />
+        </article>
     )
 }

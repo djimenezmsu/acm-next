@@ -72,7 +72,7 @@ export default async function EventsPage(
     })
 
     return (
-        <article className="flex flex-col gap-5 w-full">
+        <article className="w-full flex flex-col gap-5">
             <section className="flex gap-5 items-end">
                 <h1 className="text-on-surface md:text-5xl text-4xl font-bold w-full">{langDict.events_title}</h1>
                 {accessLevel >= createEventMinAccessLevel ? <FilledButton text={'Create'} href='./events/create' /> : undefined}

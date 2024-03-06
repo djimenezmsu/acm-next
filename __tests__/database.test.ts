@@ -137,7 +137,7 @@ describe('Database', () => {
 
     test('can get newsfeed', async () => {
         await getNewsfeed(50, 0)
-            .then(result => expect(result).toContain({
+            .then(result => expect(result).toContainEqual({
                 id: newsRecordId,
                 title: "Test Title",
                 subject: "Test Subject",
