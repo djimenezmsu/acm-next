@@ -46,10 +46,10 @@ export default async function Newsfeed(
     const langDict = await getDictionary(lang)
 
     return (
-        <article className="w-full max-w-6xl flex flex-col gap-5 mt-20 text-on-surface">
+        <article className="w-full flex flex-col gap-5">
             <PageHeader
                 text={langDict.nav_news}
-                actions={<FilledButton text={langDict.new_post} href="/news/create" />}
+                actions={<FilledButton text={langDict.news_new_post} href="/news/create" />}
             />
             <Divider />
             {

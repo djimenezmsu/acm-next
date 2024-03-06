@@ -1,8 +1,6 @@
 import Image from "@/components/image"
 import { FilledButton } from "@/components/material/filled-button"
-import { getActiveSession } from "@/lib/oauth"
 import { Locale, getDictionary } from "@/localization"
-import { cookies } from "next/headers"
 import Link from "next/link"
 
 export default async function Home(
@@ -16,11 +14,9 @@ export default async function Home(
 ) {
   const locale = params.lang
   const langDict = await getDictionary(locale)
-  const session = await getActiveSession(cookies()).catch(error => null)
 
   return (
     <article className="w-full flex flex-col gap-5 items-center justify-center pt-9">
-      {session ? <h1 className="text-on-surface font-extrabold md:text-6xl text-4xl w-full text-center">Welcome {session.user.givenName}</h1> : undefined}
       <section className="w-full flex flex-col justify-start items-center gap-8 mt-28">
         <Image
           className="w-full max-w-32"

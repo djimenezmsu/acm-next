@@ -16,6 +16,11 @@ export enum FilterDirection {
     ASCENDING
 }
 
+export enum Semester {
+    SPRING,
+    FALL
+}
+
 // users types
 export enum AccessLevel {
     NON_MEMBER,
@@ -93,6 +98,10 @@ export interface RawEvent {
     access_level: number
 }
 
+export interface RawFilterEvent extends RawEvent {
+    total_count: number
+}
+
 export interface Event {
     id: Id
     title: string
@@ -110,4 +119,9 @@ export interface EventFilterParams {
     minAccessLevel?: AccessLevel
     maxEntries?: number
     direction?: FilterDirection
+}
+
+export interface EventFilterResult {
+    totalCount: number,
+    results: Event[]
 }
