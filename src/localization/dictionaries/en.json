@@ -19,5 +19,21 @@
     "fall": "Fall",
     "spring": "Spring",
     "new_post": "New Post",
-    "view_more": "View More"
+    "view_more": "View More",
+    "events_title": "Events",
+    "events_attend": "Attend",
+    "events_future": "Upcoming",
+    "events_past": "Past",
+    "events_empty": "No Events Found.",
+    "new_event_title": "New Event",
+    "new_event_title_field": "Title",
+    "new_event_title_field_placeholder": "Event Title",
+    "new_event_location_field": "Location",
+    "new_event_location_field_placeholder": "Event Location",
+    "new_event_start_field": "Start Date",
+    "new_event_end_field": "End Date",
+    "new_event_type_field": "Type",
+    "new_event_visibility_field": "Visibility",
+    "new_event_visibility_all": "Anyone",
+    "new_event_visibility_restricted": "Officers & Advisors Only"
 }
