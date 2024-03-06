@@ -15,6 +15,8 @@ import Link from "next/link"
 import QRCode from "react-qr-code"
 
 const showQRCodeMinAccessLevel = AccessLevel.OFFICER
+export const createEventMinAccessLevel = AccessLevel.OFFICER
+
 const entriesPerPage = 10
 
 export default async function EventsPage(
@@ -73,7 +75,7 @@ export default async function EventsPage(
         <article className="flex flex-col gap-5 w-full">
             <section className="flex gap-5 items-end">
                 <h1 className="text-on-surface md:text-5xl text-4xl font-bold w-full">{langDict.events_title}</h1>
-                <FilledButton text={'Create'} />
+                {accessLevel >= createEventMinAccessLevel ? <FilledButton text={'Create'} href='./events/create' /> : undefined}
             </section>
             <Divider />
 
@@ -108,24 +110,27 @@ export default async function EventsPage(
             ) : undefined}
 
             {/* Past Events */}
-            <ul className="flex flex-col gap-5 w-full">{pastEvents.results.map(event => <PastEventItem
-                key={event.id}
-                event={event}
-            />)}
-            </ul>
+            {pastEvents.totalCount === 0 && !upcomingEvent ? <h2 className="w-full text-center text-4xl font-bold mt-5">{langDict.events_empty}</h2>
+                : (
+                    <ul className="flex flex-col gap-5 w-full">{pastEvents.results.map(event => <PastEventItem
+                        key={event.id}
+                        event={event}
+                    />)}
+                    </ul>
+                )
+            }
 
-            <PageSelector 
+            <PageSelector
                 currentOffset={currentOffset}
                 totalCount={pastEvents.totalCount}
                 pageSize={entriesPerPage}
                 href=''
             />
-
         </article>
     )
 }
 
-function EventFields(
+export function EventFields(
     {
         event,
         className = '',

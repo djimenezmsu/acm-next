@@ -24,7 +24,7 @@ export function FilledButton(
             icon={icon}
             href={href}
             onClick={onClick}
-            className={`bg-primary text-on-primary before:bg-on-primary ${className}`}
+            className={`bg-primary text-on-primary before:bg-on-primary disabled:before:bg-surface disabled:before:opacity-50 ${className}`}
             disabled={disabled}
         />
     )

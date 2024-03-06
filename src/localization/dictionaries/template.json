@@ -23,5 +23,17 @@
     "events_title": "",
     "events_attend": "",
     "events_future": "",
-    "events_past": ""
+    "events_past": "",
+    "events_empty": "",
+    "new_event_title": "",
+    "new_event_title_field": "",
+    "new_event_title_field_placeholder": "",
+    "new_event_location_field": "",
+    "new_event_location_field_placeholder": "",
+    "new_event_start_field": "",
+    "new_event_end_field": "",
+    "new_event_type_field": "",
+    "new_event_visibility_field": "",
+    "new_event_visibility_all": "",
+    "new_event_visibility_restricted": ""
 }
