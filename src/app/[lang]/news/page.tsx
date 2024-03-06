@@ -59,9 +59,9 @@ export default async function Newsfeed(
                     
                     const sectionIndex = sections.indexOf(section)
                     return (
-                        <section className="w-full max-w-6xl flex flex-col gap-5 text-on-surface" key={sectionIndex}>
+                        <section className="w-full flex flex-col gap-5 text-on-surface" key={sectionIndex}>
                             <h1 className="text-on-surface font-semibold text-3xl ">{(sectionIndex % 2 == 0 ? "Fall " : "Spring ") + Math.ceil(maxYear - sectionIndex / 2)}</h1>
-                            <ol className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-5 text-on-surface">
+                            <ol className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-5 text-on-surface">
                                 {
                                     section.map(announcement => {
                                         return <NewsCard news={announcement} buttonText={langDict.view_more} key={announcement.id} />
