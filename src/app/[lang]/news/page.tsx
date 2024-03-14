@@ -1,10 +1,12 @@
 import { getNewsfeed } from "@/data/webData";
-import { News } from "@/data/types"
+import { AccessLevel, News } from "@/data/types"
 import { NewsCard } from "@/components/news-card";
 import { Divider } from "@/components/material/divider";
 import { FilledButton } from "@/components/material/filled-button";
 import { Locale, getDictionary } from "@/localization";
 import { PageHeader } from "@/components/page-header";
+import { getActiveSession } from "@/lib/oauth";
+import { cookies } from "next/headers";
 
 export default async function Newsfeed(
     {
@@ -44,12 +46,15 @@ export default async function Newsfeed(
 
     // get the language dictionary
     const langDict = await getDictionary(lang)
+    const session = await getActiveSession(cookies())
+    const accessLevel = session ? session.user.accessLevel : AccessLevel.NON_MEMBER
+            
 
     return (
         <article className="w-full flex flex-col gap-5">
             <PageHeader
                 text={langDict.nav_news}
-                actions={<FilledButton text={langDict.news_new_post} href="/news/create" />}
+                actions={(accessLevel > AccessLevel.NON_MEMBER)? <FilledButton text={langDict.news_new_post} href="/news/create" /> : <></>}
             />
             <Divider />
             {

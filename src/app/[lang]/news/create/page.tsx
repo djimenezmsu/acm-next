@@ -1,4 +1,6 @@
+import { ImageInput } from "@/components/input/image-input";
 import { InputSection } from "@/components/input/input-section";
+import { MarkdownInput } from "@/components/input/markdown-input";
 import { TextInputElement } from "@/components/input/text-input";
 import { TextAreaInputElement } from "@/components/input/textarea-input";
 import { UTCDateInput } from "@/components/input/utc-date-input";
@@ -32,10 +34,10 @@ export default async function Announcement(
         const postDate = formData.get("date")
         const subject = formData.get("subject")
         const body = formData.get("body")
-        const imageInput = formData.get("imageInput")
+        const imageInput = formData.get("imageInput") as File | null
 
         //Don't create announcement if non nullable are null
-        if (title == null || body == null || postDate == null)
+        if (title == null || body == null || postDate == "" || postDate == null)
             return
 
         await insertNews(
@@ -43,7 +45,7 @@ export default async function Announcement(
             subject == null ? null : subject.toString(),
             body.toString(), 
             new Date(postDate.toString()), 
-            imageInput == null? null : imageInput.toString()
+            (imageInput != null)? imageInput.name : ""
         )
 
         redirect("/news")
@@ -60,23 +62,20 @@ export default async function Announcement(
                 </li>
                 <li className="w-full flex flex-col gap-2 text-on-surface">
                     <InputSection title={langDict.news_date}>
-                        <UTCDateInput name="date" />
+                        <UTCDateInput name="date" required/>
                     </InputSection>
                 </li>
                 <li className="w-full flex flex-col gap-2 text-on-surface">
                     <InputSection title={langDict.news_subject}>
-                        <TextInputElement name="title" placeholder={langDict.news_subject_placeholder} required></TextInputElement>
+                        <TextInputElement name="subject" placeholder={langDict.news_subject_placeholder} required></TextInputElement>
                     </InputSection>
                 </li>
                 <li className="w-full flex flex-col gap-2 text-on-surface">
-                    <InputSection title={langDict.news_body}>
-                        <TextAreaInputElement name="body" placeholder={langDict.news_body_placeholder} required />
-                    </InputSection>
+                    <MarkdownInput title={langDict.news_body} name="body"/>
                 </li>
                 <li className="w-full flex flex-col gap-2 text-on-surface">
                     <InputSection title={langDict.news_image}>
-                        <label className="w-80 h-80 rounded-2xl bg-surface-container" htmlFor="imageInput"/>
-                        <input name="imageInput" type="file"/>
+                        <ImageInput name="imageInput"/>                        
                     </InputSection>
                 </li>
             </ol>

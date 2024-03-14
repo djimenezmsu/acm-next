@@ -4,11 +4,15 @@ export function TextAreaInputElement(
         placeholder,
         required = false,
         maxLength,
+        value,
+        onChange
     }: {
         name: string,
         placeholder: string,
         required?: boolean,
-        maxLength?: number
+        maxLength?: number,
+        value?: string,
+        onChange?: (newValue: string) => void
     }
 ) {
     return (
@@ -19,6 +23,8 @@ export function TextAreaInputElement(
             placeholder={placeholder}
             required={required}
             maxLength={maxLength}
+            onChange={(event) => {if (onChange) onChange(event.target?.value || "")}}
+            value={value}
         />
     )
 }
