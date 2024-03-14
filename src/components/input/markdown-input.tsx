@@ -22,7 +22,7 @@ export function MarkdownInput(
     const [markdownValue, setMarkdownValue] = useState("")
     return (
         <section className="flex flex-col gap-3 w-full">
-            <section className="w-full flex gap-5 justify-between">
+            <section className="w-full flex gap-5 justify-between items-end">
                 <h2 className="text-2xl font-semibold">{title}</h2>
                 <FilledButton
                     text="Preview"
