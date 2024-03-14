@@ -35,7 +35,16 @@ export function ImageInput(
                 </>
                 }
             </label>
-            <input name={name} id={name} type="file" accept="image/*" hidden ref={hiddenRef} onChange={
+            <input name={name} id={name} type="file" accept="image/*" hidden ref={hiddenRef} 
+            onClick={
+                (event) => {
+                    if (files) {
+                        event.preventDefault()
+                        setFiles(null)
+                    }
+                }
+            } 
+            onChange={
                 () => {
                     if (hiddenRef.current && hiddenRef.current.files && hiddenRef.current.files[0]) {
                         setFiles(hiddenRef.current.files[0])

@@ -54,7 +54,8 @@ export default async function Announcement(
         <form action={createAnnouncment} className="w-full flex flex-col gap-5">
             <PageHeader text="New Post" actions={<FilledButton text={langDict.create_post}/>} />
             <Divider />
-            <ol className="w-full flex flex-col gap-5 text-on-surface">
+            <section className="w-full flex flex-cols-2 gap-5 justify-between items-start">
+            <ol className="flex-1 flex flex-col gap-5 text-on-surface">
                 <li className="w-full flex flex-col gap-2 text-on-surface">
                     <InputSection title={langDict.news_title}>
                         <TextInputElement name="title" placeholder={langDict.news_title_placeholder} required></TextInputElement>
@@ -70,15 +71,14 @@ export default async function Announcement(
                         <TextInputElement name="subject" placeholder={langDict.news_subject_placeholder} required></TextInputElement>
                     </InputSection>
                 </li>
-                <li className="w-full flex flex-col gap-2 text-on-surface">
-                    <MarkdownInput title={langDict.news_body} name="body"/>
-                </li>
-                <li className="w-full flex flex-col gap-2 text-on-surface">
-                    <InputSection title={langDict.news_image}>
-                        <ImageInput name="imageInput"/>                        
-                    </InputSection>
-                </li>
             </ol>
+            <section className="w-fit">
+            <ImageInput name="imageInput"/>                        
+            </section>
+            </section>
+            <section>
+                <MarkdownInput title={langDict.news_body} name="body"/>
+            </section>
         </form>
     )
 }
