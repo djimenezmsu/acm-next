@@ -13,6 +13,7 @@ import { Divider } from "@/components/material/divider"
 import Image from "@/components/image"
 import { IconButton } from "@/components/material/icon-button"
 import { PageSelector } from "@/components/page-selector"
+import { DeleteEventButton } from "./delete-event-button"
 
 const entriesPerPage = 20
 
@@ -83,20 +84,16 @@ export default async function EventsPage(
                             className="w-full sm:w-fit"
                         /> : undefined}
                         {canCreateEvents ? <>
-
                             <FilledButton
                                 icon="edit"
                                 text={langDict.event_edit}
                                 href={`/`}
                                 className="w-full sm:w-fit"
                             />
-                            <BaseButton
-                                icon="delete"
+                            <DeleteEventButton
+                                eventId={eventId}
                                 text={langDict.event_delete}
-                                href={`/`}
-                                className="w-full sm:w-fit bg-error text-on-error before:bg-on-error"
                             />
-
                         </> : undefined}
                     </>
                 }
