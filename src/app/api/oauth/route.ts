@@ -4,7 +4,6 @@ import { NextRequest } from "next/server";
 import { OAuth2Client } from "google-auth-library";
 import { getUser, insertUser, updateUser } from "@/data/webData";
 import { AccessLevel } from "@/data/types";
-import assert from "assert";
 import { generateSession, getActiveSession } from "@/lib/oauth";
 
 export async function GET(
@@ -12,11 +11,13 @@ export async function GET(
 ) {
     const params = request.nextUrl.searchParams
     const code = params.get('code')
+    const refer = params.get('refer')
+    const state = params.get('state')
 
     const cookie = cookies()
     const currentSession = await getActiveSession(cookie)
 
-    let redirectTo = '/'
+    let redirectTo = state || "/"
 
     if (currentSession) return redirect(redirectTo)
 
@@ -34,6 +35,7 @@ export async function GET(
                 access_type: 'offline',
                 scope: process.env.GOOGLE_OAUTH_SCOPE,
                 hd: process.env.GOOGLE_OAUTH_HD || '*',
+                state: refer || "/"
             })
         } else {
             // get the token from google's servers
@@ -84,6 +86,6 @@ export async function GET(
     } catch (err: any) {
         console.log('Oauth2 Error', err.response, err.message, err.code)
     }
-    
+
     return redirect(redirectTo)
 }
