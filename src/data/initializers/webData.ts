@@ -60,4 +60,13 @@ export default function init(
         FOREIGN KEY (type) REFERENCES event_types (id) ON DELETE SET NULL
     )`).run()
 
+    // events attendance
+    database.prepare(`CREATE TABLE IF NOT EXISTS events_attendance (
+        event_id INTEGER NOT NULL,
+        user_email TEXT NOT NULL,
+        PRIMARY KEY (event_id, user_email),
+        FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE,
+        FOREIGN KEY (user_email) REFERENCES users (email) ON DELETE CASCADE 
+    )`).run()
+
 }

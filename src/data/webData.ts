@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import getDatabase from ".";
-import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News, EventType, Id, RawEvent, Event, EventFilterParams, FilterDirection, EventFilterResult, RawFilterEvent } from "./types";
+import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News, EventType, Id, RawEvent, Event, EventFilterParams, FilterDirection, EventFilterResult, RawFilterEvent, RawEventAttendance } from "./types";
 
 
 // import database
@@ -368,7 +368,7 @@ function updateSessionSync(
         if (field && value !== undefined) {
             sets.push(`${field} = ?`) // create set value
             // convert value to a type storable in the database, and add it to the values array.
-            switch(field) {
+            switch (field) {
                 case 'google_tokens':
                     values.push(JSON.stringify(value))
                     break;
@@ -475,10 +475,10 @@ function getNewsSync(
     SELECT id, title, subject, body, post_date, image_url FROM news 
     WHERE id = ?
     `)
-    .get(id) as RawNews | null
+        .get(id) as RawNews | null
 
     if (!rawData) return null
-    
+
     return buildNews(rawData)
 }
 
@@ -516,7 +516,7 @@ function getNewsfeedSync(
     ORDER BY post_date DESC, Id DESC
     LIMIT ? OFFSET ? 
     `)
-    .all(limit, limit * (page - 1)) as RawNews[]
+        .all(limit, limit * (page - 1)) as RawNews[]
 
     return rawData.map(buildNews) as News[]
 }
@@ -562,8 +562,8 @@ function insertNewsSync(
     INSERT INTO news (title, subject, body, post_date, image_url)
     VALUES (?, ?, ?, ?, ?)
     `)
-    .run(title, subject, body, postDate.toISOString(), imageURL)
-    .lastInsertRowid
+        .run(title, subject, body, postDate.toISOString(), imageURL)
+        .lastInsertRowid
 
     return Number(newsId)
 }
@@ -607,7 +607,7 @@ function updateNewsSync(
     UPDATE news SET title = ?, subject = ?, body = ?, post_date = ?, image_url = ?
     WHERE id = ?
     `)
-    .run(news.title, news.subject, news.body, news.postDate.toISOString(), news.imageURL, news.id)
+        .run(news.title, news.subject, news.body, news.postDate.toISOString(), news.imageURL, news.id)
 
     return true
 }
@@ -618,7 +618,7 @@ function updateNewsSync(
  * @param news
  * @returns true on success
  */
-export function updateNews (
+export function updateNews(
     news: News
 ): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
@@ -643,7 +643,7 @@ function deleteNewsSync(
     DELETE FROM news 
     WHERE id = ?
     `)
-    .run(id)
+        .run(id)
 
     return true
 }
@@ -1048,7 +1048,7 @@ function updateEventSync(
         if (field && value !== undefined) {
             sets.push(`${field} = ?`) // create set value
             // convert value to a type storable in the database, and add it to the values array.
-            switch(field) {
+            switch (field) {
                 case 'type':
                     values.push(value === null ? null : (value as EventType).id)
                     break;
@@ -1113,6 +1113,130 @@ export function deleteEvent(
     return new Promise<void>((resolve, reject) => {
         try {
             resolve(deleteEventSync(id))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously gets every user that attended a specific event.
+ * 
+ * @param event_id The ID of the event to get the attendance of.
+ * @returns {User[]} A list of users that attended this event.
+ */
+function getEventAttendanceSync(
+    event_id: Id,
+    offset: number = 0,
+    maxEntries: number = 50
+): User[] {
+
+    const rawAttendance = db.prepare(`
+    SELECT event_id, user_email
+    FROM events_attendance
+    WHERE event_id = ?
+    LIMIT :maxEntries
+    OFFSET :offset`).all(event_id, maxEntries, offset) as RawEventAttendance[]
+
+    const users: User[] = []
+    for (const raw of rawAttendance) {
+        const user = getUserSync(raw.user_email)
+        if (user) {
+            users.push(user)
+        }
+    }
+
+    return users
+}
+
+/**
+ * Gets every user that attended a specific event.
+ * 
+ * @param event_id The ID of the event to get the attendance of.
+ * @returns {User[]} A promise that resolves with a list of users that attended this event.
+ */
+export function getEventAttendance(
+    event_id: Id,
+    offset?: number,
+    maxEntries?: number
+): Promise<User[]> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(getEventAttendanceSync(event_id, offset, maxEntries))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously attends an event as a specific user.
+ * 
+ * @param event_id The ID of the event to attend.
+ * @param user_email The email of the user to attend as.
+ */
+function attendEventSync(
+    event_id: Id,
+    user_email: string
+) {
+    db.prepare(`
+    INSERT INTO events_attendance (event_id, user_email)
+    VALUES (?, ?)
+    `).run(event_id, user_email)
+}
+
+/**
+ * Attends an event as a specific user.
+ * 
+ * @param event_id The ID of the event to attend.
+ * @param user_email The email of the user to attend as.
+ * @returns A promise that resolves when the event has been attended.
+ */
+export function attendEvent(
+    event_id: Id,
+    user_email: string
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            resolve(attendEventSync(event_id, user_email))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously checks if a specific user has attended an event.
+ * 
+ * @param event_id The ID of the event to check.
+ * @param user_email The email of the user to check the attendance of.
+ * @returns {boolean} A boolean; true if the user has attended the event, false otherwise.
+ */
+function hasUserAttendedEventSync(
+    event_id: Id,
+    user_email: string
+): boolean {
+    return db.prepare(`
+    SELECT event_id, user_email
+    FROM events_attendance
+    WHERE event_id = ? AND user_email = ?
+    `).get(event_id, user_email) !== undefined
+}
+
+/**
+ * Checks if a specific user has attended an event.
+ * 
+ * @param event_id The ID of the event to check.
+ * @param user_email The email of the user to check the attendance of.
+ * @returns {boolean} A promise that resolves with a boolean; true if the user has attended the event, false otherwise.
+ */
+export function hasUserAttendedEvent(
+    event_id: Id,
+    user_email: string
+): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+        try {
+            resolve(hasUserAttendedEventSync(event_id, user_email))
         } catch (error) {
             reject(error)
         }

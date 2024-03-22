@@ -125,3 +125,9 @@ export interface EventFilterResult {
     totalCount: number,
     results: Event[]
 }
+
+/* Event Attendance */
+export interface RawEventAttendance {
+    event_id: Id,
+    user_email: string
+}
