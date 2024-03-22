@@ -87,7 +87,7 @@ export default async function EventsPage(
                             <FilledButton
                                 icon="edit"
                                 text={langDict.event_edit}
-                                href={`/`}
+                                href={`./${eventId}/edit`}
                                 className="w-full sm:w-fit"
                             />
                             <DeleteEventButton
