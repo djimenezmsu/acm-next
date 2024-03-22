@@ -1122,11 +1122,11 @@ export function deleteEvent(
 /**
  * Synchronously gets every user that attended a specific event.
  * 
- * @param event_id The ID of the event to get the attendance of.
+ * @param eventId The ID of the event to get the attendance of.
  * @returns {User[]} A list of users that attended this event.
  */
 function getEventAttendanceSync(
-    event_id: Id,
+    eventId: Id,
     offset: number = 0,
     maxEntries: number = 50
 ): User[] {
@@ -1136,7 +1136,7 @@ function getEventAttendanceSync(
     FROM events_attendance
     WHERE event_id = ?
     LIMIT ?
-    OFFSET ?`).all(event_id, maxEntries, offset) as RawEventAttendance[]
+    OFFSET ?`).all(eventId, maxEntries, offset) as RawEventAttendance[]
 
     const users: User[] = []
     for (const raw of rawAttendance) {
@@ -1152,17 +1152,17 @@ function getEventAttendanceSync(
 /**
  * Gets every user that attended a specific event.
  * 
- * @param event_id The ID of the event to get the attendance of.
+ * @param eventId The ID of the event to get the attendance of.
  * @returns {User[]} A promise that resolves with a list of users that attended this event.
  */
 export function getEventAttendance(
-    event_id: Id,
+    eventId: Id,
     offset?: number,
     maxEntries?: number
 ): Promise<User[]> {
     return new Promise((resolve, reject) => {
         try {
-            resolve(getEventAttendanceSync(event_id, offset, maxEntries))
+            resolve(getEventAttendanceSync(eventId, offset, maxEntries))
         } catch (error) {
             reject(error)
         }
@@ -1172,33 +1172,33 @@ export function getEventAttendance(
 /**
  * Synchronously attends an event as a specific user.
  * 
- * @param event_id The ID of the event to attend.
- * @param user_email The email of the user to attend as.
+ * @param eventId The ID of the event to attend.
+ * @param userEmail The email of the user to attend as.
  */
 function attendEventSync(
-    event_id: Id,
-    user_email: string
+    eventId: Id,
+    userEmail: string
 ) {
     db.prepare(`
     INSERT INTO events_attendance (event_id, user_email)
     VALUES (?, ?)
-    `).run(event_id, user_email)
+    `).run(eventId, userEmail)
 }
 
 /**
  * Attends an event as a specific user.
  * 
- * @param event_id The ID of the event to attend.
- * @param user_email The email of the user to attend as.
+ * @param eventId The ID of the event to attend.
+ * @param userEmail The email of the user to attend as.
  * @returns A promise that resolves when the event has been attended.
  */
 export function attendEvent(
-    event_id: Id,
-    user_email: string
+    eventId: Id,
+    userEmail: string
 ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         try {
-            resolve(attendEventSync(event_id, user_email))
+            resolve(attendEventSync(eventId, userEmail))
         } catch (error) {
             reject(error)
         }
@@ -1208,35 +1208,35 @@ export function attendEvent(
 /**
  * Synchronously checks if a specific user has attended an event.
  * 
- * @param event_id The ID of the event to check.
- * @param user_email The email of the user to check the attendance of.
+ * @param eventId The ID of the event to check.
+ * @param userEmail The email of the user to check the attendance of.
  * @returns {boolean} A boolean; true if the user has attended the event, false otherwise.
  */
 function hasUserAttendedEventSync(
-    event_id: Id,
-    user_email: string
+    eventId: Id,
+    userEmail: string
 ): boolean {
     return db.prepare(`
     SELECT event_id, user_email
     FROM events_attendance
     WHERE event_id = ? AND user_email = ?
-    `).get(event_id, user_email) !== undefined
+    `).get(eventId, userEmail) !== undefined
 }
 
 /**
  * Checks if a specific user has attended an event.
  * 
- * @param event_id The ID of the event to check.
- * @param user_email The email of the user to check the attendance of.
+ * @param eventId The ID of the event to check.
+ * @param userEmail The email of the user to check the attendance of.
  * @returns {boolean} A promise that resolves with a boolean; true if the user has attended the event, false otherwise.
  */
 export function hasUserAttendedEvent(
-    event_id: Id,
-    user_email: string
+    eventId: Id,
+    userEmail: string
 ): Promise<boolean> {
     return new Promise((resolve, reject) => {
         try {
-            resolve(hasUserAttendedEventSync(event_id, user_email))
+            resolve(hasUserAttendedEventSync(eventId, userEmail))
         } catch (error) {
             reject(error)
         }
@@ -1246,33 +1246,33 @@ export function hasUserAttendedEvent(
 /**
  * Synchronously deletes the record of a user's attendance to an event.
  * 
- * @param event_id The ID of the event.
- * @param user_email The email of the user to remove the attendance of.
+ * @param eventId The ID of the event.
+ * @param userEmail The email of the user to remove the attendance of.
  */
 function deleteEventAttendanceSync(
-    event_id: Id,
-    user_email: string
+    eventId: Id,
+    userEmail: string
 ) {
     db.prepare(`
     DELETE FROM events_attendance
     WHERE event_id = ? AND user_email = ?
-    `).run(event_id, user_email)
+    `).run(eventId, userEmail)
 }
 
 /**
  * Deletes the record of a user's attendance to an event.
  * 
- * @param event_id The ID of the event.
- * @param user_email The email of the user to remove the attendance of.
+ * @param eventId The ID of the event.
+ * @param userEmail The email of the user to remove the attendance of.
  * @returns A promise that resolves when the attendance record is deleted.
  */
 export function deleteEventAttendance(
-    event_id: Id,
-    user_email: string
+    eventId: Id,
+    userEmail: string
 ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         try {
-            resolve(deleteEventAttendanceSync(event_id, user_email))
+            resolve(deleteEventAttendanceSync(eventId, userEmail))
         } catch (error) {
             reject(error)
         }
