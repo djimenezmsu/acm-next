@@ -1,10 +1,26 @@
 import { randomBytes } from "crypto";
 import getDatabase from ".";
-import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News, EventType, Id, RawEvent, Event, EventFilterParams, FilterDirection, EventFilterResult, RawFilterEvent, RawEventAttendance } from "./types";
+import { AccessLevel, Databases, RawUser, User, RawSession, Session, RawNews, News, EventType, Id, RawEvent, Event, EventFilterParams, FilterDirection, EventFilterResult, RawFilterEvent, RawEventAttendance, EventAttendance, EventsAttendanceFilterParams, EventsAttendanceFilterResult, RawFilterEventAttendance } from "./types";
 
 
 // import database
 const db = getDatabase(Databases.WEB_DATA)
+
+function buildInStatement(
+    values: any[], 
+    queryParams: { [key: string]: any },
+    prefix: string = '',
+) {
+    const stringBuilder = []
+    let n = 0
+    for (const value of values) {
+        const key = `${prefix}${n}`
+        stringBuilder.push(`:${key}`)
+        queryParams[key] = value
+        n++
+    }
+    return stringBuilder.join(',')
+}
 
 // ----- USERS -----
 
@@ -1119,50 +1135,77 @@ export function deleteEvent(
     })
 }
 
+// ----- EVENT ATTENDANCE --------------------------------------------------------------------------------------------------------------------------------------------
+
 /**
- * Synchronously gets every user that attended a specific event.
+ * Converts a RawEventAttendance object into an EventAttendance object.
  * 
- * @param eventId The ID of the event to get the attendance of.
- * @returns {User[]} A list of users that attended this event.
+ * @param rawAttendance The RawEventAttendance object to convert.
+ * @returns The converted EventAttendance object.
  */
-function getEventAttendanceSync(
-    eventId: Id,
-    offset: number = 0,
-    maxEntries: number = 50
-): User[] {
-
-    const rawAttendance = db.prepare(`
-    SELECT event_id, user_email
-    FROM events_attendance
-    WHERE event_id = ?
-    LIMIT ?
-    OFFSET ?`).all(eventId, maxEntries, offset) as RawEventAttendance[]
-
-    const users: User[] = []
-    for (const raw of rawAttendance) {
-        const user = getUserSync(raw.user_email)
-        if (user) {
-            users.push(user)
-        }
+function buildEventAttendance(
+    rawAttendance: RawEventAttendance
+): EventAttendance {
+    return {
+        eventId: rawAttendance.event_id,
+        userEmail: rawAttendance.user_email
     }
-
-    return users
 }
 
 /**
- * Gets every user that attended a specific event.
+ * Synchronously filters the events attendance database based on various parameters.
  * 
- * @param eventId The ID of the event to get the attendance of.
- * @returns {User[]} A promise that resolves with a list of users that attended this event.
+ * @param filterParams The parameters to refine the result with.
+ * @returns The filter result.
  */
-export function getEventAttendance(
-    eventId: Id,
-    offset?: number,
-    maxEntries?: number
-): Promise<User[]> {
+function filterEventsAttendanceSync(
+    filterParams: EventsAttendanceFilterParams
+): EventsAttendanceFilterResult {
+
+    const queryParams: { [key: string]: any } = {
+        fromDate: filterParams.fromDate ? filterParams.fromDate.toISOString() : null,
+        toDate: filterParams.toDate ? filterParams.toDate.toISOString() : null,
+        offset: filterParams.offset || 0,
+        maxEntries: filterParams.maxEntries || 50,
+        direction: filterParams.direction == undefined ? FilterDirection.DESCENDING : filterParams.direction
+    }
+
+    const eventIdsValues = filterParams.eventIds ? buildInStatement(filterParams.eventIds, queryParams, "eventIds") : null
+    const userEmailsValues = filterParams.userEmails ? buildInStatement(filterParams.userEmails, queryParams, "userEmails") : null
+
+    const eventIdsStatement = eventIdsValues ? ` AND (event_id IN (${eventIdsValues}))` : ''
+    const userEmailsStatement = userEmailsValues ? ` AND (user_email IN (${userEmailsValues}))` : ''
+
+    const dbResult = db.prepare(`
+    SELECT event_id, user_email, COUNT(*) OVER() as total_count
+    FROM events_attendance
+    INNER JOIN events ON events.id = event_id
+    WHERE (:fromDate IS NULL OR events.end_date > :fromDate)
+        AND (:toDate IS NULL OR :toDate >= events.end_date)${eventIdsStatement}${userEmailsStatement}
+    ORDER BY
+        CASE WHEN :direction = 0 THEN 1 ELSE start_date END ASC,
+        CASE WHEN :direction = 1 THEN 1 ELSE start_date END DESC
+    LIMIT :maxEntries
+    OFFSET :offset`).all(queryParams) as RawFilterEventAttendance[]
+
+    return {
+        totalCount: dbResult[0] ? dbResult[0].total_count : 0,
+        results: dbResult.map(raw => buildEventAttendance(raw))
+    }
+}
+
+/**
+ * Filters the events attendance database based on various parameters.
+ * 
+ * @param filterParams The parameters to refine the result with.
+ * @returns A promise that resolves with the filter result.
+ */
+export function filterEventsAttendance(
+    filterParams: EventsAttendanceFilterParams
+): Promise<EventsAttendanceFilterResult> {
     return new Promise((resolve, reject) => {
         try {
-            resolve(getEventAttendanceSync(eventId, offset, maxEntries))
+            resolve(filterEventsAttendanceSync(filterParams))
         } catch (error) {
             reject(error)
         }

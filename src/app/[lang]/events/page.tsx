@@ -1,3 +1,4 @@
+import { EventCard } from "@/components/events/event-card"
 import { DateFormatter } from "@/components/formatters/date-formatter"
 import { DateRangeFormatter } from "@/components/formatters/date-range-formatter"
 import { DateFormatterMode } from "@/components/formatters/types"
@@ -13,9 +14,8 @@ import { isEventInProgress } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/headers"
 import Link from "next/link"
-import QRCode from "react-qr-code"
 
-const showQRCodeMinAccessLevel = AccessLevel.OFFICER
+export const showQRCodeMinAccessLevel = AccessLevel.OFFICER
 export const createEventMinAccessLevel = AccessLevel.OFFICER
 
 const entriesPerPage = 10
@@ -38,6 +38,7 @@ export default async function EventsPage(
     // get session & access level
     const session = await getActiveSession(cookies())
     const accessLevel = session ? session.user.accessLevel : AccessLevel.NON_MEMBER
+    const showQR = accessLevel >= showQRCodeMinAccessLevel
 
     // parse search params
     const currentPage = Math.max(Number.parseInt(searchParams.page) || 0, 0) // parse the page search parameter, ensuring that it is >= 1
@@ -81,24 +82,19 @@ export default async function EventsPage(
             <Divider />
 
             {upcomingEvent ? (
-                <section className="flex sm:flex-row flex-col gap-5 p-6 bg-primary text-on-primary rounded-3xl items-center h-fit">
-                    <section className="flex-1 flex gap-3 h-full flex-col justify-center">
-                        <Link href={`./events/${upcomingEvent.id}`} className="text-4xl sm:text-left text-center font-bold text-inherit hover:text-primary-container transition-colors">{upcomingEvent.title}</Link>
-                        {upcomingEventInProgress ?
-                            accessLevel >= showQRCodeMinAccessLevel ? (
-                                <EventFields event={upcomingEvent} className="justify-start mt-2" fieldClassName="flex-row-reverse" />
-                            ) : (
-                                <section className="flex-1 flex-col justify-end">
-                                    <BaseButton text={langDict.events_attend} href={`/api/events/attend?id=${upcomingEvent.id}`} className="w-fit mt-2 bg-on-primary text-primary before:bg-on-primary" />
-                                </section>
-                            ) : undefined}
-                    </section>
-                    {upcomingEventInProgress && accessLevel >= showQRCodeMinAccessLevel ? (
-                        <QRCode className="w-full h-full max-w-56 max-h-56 p-3 bg-white rounded-3xl" value={`/api/events/attend?id=${upcomingEvent.id}`} />
-                    ) : (
-                        <EventFields event={upcomingEvent} className="sm:items-end items-center justify-center" />
-                    )}
-                </section>
+                <EventCard
+                    event={upcomingEvent}
+                    showQR={showQR}
+                    inProgress={upcomingEventInProgress}
+                    buttons={
+                        upcomingEventInProgress && !showQR ? <BaseButton
+                            text={langDict.events_attend}
+                            href={`/api/events/attend?id=${upcomingEvent.id}`}
+                            className="w-full sm:w-fit bg-on-primary text-primary before:bg-on-primary"
+                        /> : undefined
+                    }
+                    className="p-6 bg-primary text-on-primary rounded-3xl"
+                />
             ) : undefined}
 
             {/* Future Events */}
@@ -128,53 +124,6 @@ export default async function EventsPage(
                 href=''
             />
         </article>
-    )
-}
-
-export function EventFields(
-    {
-        event,
-        className = '',
-        fieldClassName
-    }: {
-        event: Event
-        className?: string
-        fieldClassName?: string
-    }
-) {
-    return (
-        <ul className={`flex flex-col gap-3 h-fit ${className}`}>
-            {/* Start Date */}
-            <EventField text={<DateFormatter date={event.startDate} />} icon='calendar_month' className={fieldClassName} />
-
-            {/* Location */}
-            <EventField text={event.location} icon='explore' className={fieldClassName} />
-
-            {/* Duration */}
-            <EventField text={<DateRangeFormatter dateFrom={event.startDate} dateTo={event.endDate} />} icon='schedule' className={fieldClassName} />
-
-            {/* Type */}
-            {event.type ? <EventField text={event.type.name} icon='book' className={fieldClassName} /> : undefined}
-        </ul>
-    )
-}
-
-function EventField(
-    {
-        text,
-        icon,
-        className = ''
-    }: {
-        text: React.ReactNode,
-        icon: string,
-        className?: string
-    }
-) {
-    return (
-        <li className={`flex items-center justify-end gap-3 ${className}`}>
-            <h3 className="text-lg">{text}</h3>
-            <Icon icon={icon} />
-        </li>
     )
 }
 

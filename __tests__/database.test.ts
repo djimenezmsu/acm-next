@@ -2,7 +2,7 @@ import { AccessLevel, Event, EventType, News, User } from "@/data/types";
 import {
     deleteNews, getNews, getNewsfeed, insertNews, updateNews,
     getUser, insertUser, deleteUser, updateUser, userExists,
-    deleteSession, getSession, insertSession, updateSession, getEventType, getAllEventTypes, insertEventType, updateEventType, deleteEventType, insertEvent, deleteEvent, updateEvent, getEvent, filterEvents, attendEvent, getEventAttendance, hasUserAttendedEvent, deleteEventAttendance
+    deleteSession, getSession, insertSession, updateSession, getEventType, getAllEventTypes, insertEventType, updateEventType, deleteEventType, insertEvent, deleteEvent, updateEvent, getEvent, filterEvents, attendEvent, hasUserAttendedEvent, deleteEventAttendance, filterEventsAttendance
 } from "@/data/webData";
 
 describe('Database', () => {
@@ -339,12 +339,17 @@ describe('Database', () => {
 
         await attendEvent(newEvent.id, newUser.email)
 
-        const attendance = await getEventAttendance(newEvent.id)
+        const attendance = await filterEventsAttendance({
+            eventIds: [newEvent.id]
+        })
         
         deleteEvent(newEvent.id)
         deleteUser(newUser.email)
 
-        expect(attendance).toEqual([newUser])
+        expect(attendance.results).toContainEqual({
+            eventId: newEvent.id,
+            userEmail: newUser.email
+        })
     })
 
     test("can check event attendance", async () => {

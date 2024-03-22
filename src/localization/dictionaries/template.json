@@ -44,5 +44,10 @@
     "new_event_type_field": "",
     "new_event_visibility_field": "",
     "new_event_visibility_all": "",
-    "new_event_visibility_restricted": ""
+    "new_event_visibility_restricted": "",
+    "event_edit": "",
+    "event_delete": "",
+    "event_add_to_calendar": "",
+    "event_attendance": "",
+    "event_no_attendance": ""
 }
