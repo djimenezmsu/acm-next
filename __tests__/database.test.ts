@@ -2,13 +2,13 @@ import { AccessLevel, Event, EventType, News, User } from "@/data/types";
 import {
     deleteNews, getNews, getNewsfeed, insertNews, updateNews,
     getUser, insertUser, deleteUser, updateUser, userExists,
-    deleteSession, getSession, insertSession, updateSession, getEventType, getAllEventTypes, insertEventType, updateEventType, deleteEventType, insertEvent, deleteEvent, updateEvent, getEvent, filterEvents
+    deleteSession, getSession, insertSession, updateSession, getEventType, getAllEventTypes, insertEventType, updateEventType, deleteEventType, insertEvent, deleteEvent, updateEvent, getEvent, filterEvents, attendEvent, getEventAttendance, hasUserAttendedEvent, deleteEventAttendance
 } from "@/data/webData";
 
 describe('Database', () => {
     // users table tests
 
-    const user = {
+    const testUser = {
         email: 'jdoe@murraystate.edu',
         givenName: 'John',
         familyName: 'Doe',
@@ -16,7 +16,7 @@ describe('Database', () => {
         accessLevel: AccessLevel.NON_MEMBER
     } as User
 
-    const updatedUser = {
+    const updatedTestUser = {
         email: 'jdoe@murraystate.edu',
         givenName: 'Jane',
         familyName: 'Doe',
@@ -24,15 +24,15 @@ describe('Database', () => {
         accessLevel: AccessLevel.NON_MEMBER
     } as User
 
-    test('can insert a user', () => insertUser(user))
+    test('can insert a user', () => insertUser(testUser))
 
     test('can get a user', async () => {
-        const fetched = await getUser(user.email)
-        expect(fetched).toEqual(user)
+        const fetched = await getUser(testUser.email)
+        expect(fetched).toEqual(testUser)
     })
 
     test('can check if a user exists', async () => {
-        const exists = await userExists(user.email)
+        const exists = await userExists(testUser.email)
         expect(exists).toBe(true)
     })
 
@@ -47,12 +47,12 @@ describe('Database', () => {
             givenName: 'Jane'
         })
 
-        expect(updated).toEqual(updatedUser)
+        expect(updated).toEqual(updatedTestUser)
     })
 
     // sessions tests
     const toInsertSession = {
-        user: updatedUser,
+        user: updatedTestUser,
         googleTokens: { 'access_token': 'thisIsAnAccessToken' },
         expires: new Date()
     }
@@ -78,7 +78,7 @@ describe('Database', () => {
         expect(updated).toEqual({
             token: session.token,
             expires: toInsertSession.expires,
-            user: updatedUser,
+            user: updatedTestUser,
             googleTokens: { 'access_token': 'thisIsAnUpdatedAccessToken' }
         })
     })
@@ -89,10 +89,10 @@ describe('Database', () => {
         await deleteSession(session.token)
     })
 
-    test('can delete a user', () => deleteUser('jdoe@murraystate.edu')
-        .then(_ => true)
-        .catch(_ => false)
-    )
+    test('can delete a user', async () => {
+        await deleteUser(testUser.email)
+        return true
+    })
 
     // news table tests
     let newsRecordId = 0
@@ -317,6 +317,62 @@ describe('Database', () => {
         // delete
         deleteEvent(newEvent.id)
 
-        expect(filtered).toEqual([testEvent])
+        expect(filtered.results).toContainEqual(testEvent)
     })
+
+    // events attendance
+    test("can get attend event", async () => {
+        const newEvent = await insertEvent(testEvent)
+        const newUser = await insertUser(testUser)
+
+        await attendEvent(newEvent.id, newUser.email)
+
+        deleteEvent(newEvent.id)
+        deleteUser(newUser.email)
+        
+        return true
+    })
+
+    test("can get event attendance", async () => {
+        const newEvent = await insertEvent(testEvent)
+        const newUser = await insertUser(testUser)
+
+        await attendEvent(newEvent.id, newUser.email)
+
+        const attendance = await getEventAttendance(newEvent.id)
+        
+        deleteEvent(newEvent.id)
+        deleteUser(newUser.email)
+
+        expect(attendance).toEqual([newUser])
+    })
+
+    test("can check event attendance", async () => {
+        const newEvent = await insertEvent(testEvent)
+        const newUser = await insertUser(testUser)
+
+        await attendEvent(newEvent.id, newUser.email)
+
+        const didAttend = await hasUserAttendedEvent(newEvent.id, newUser.email)
+        
+        deleteEvent(newEvent.id)
+        deleteUser(newUser.email)
+
+        expect(didAttend).toEqual(true)
+    })
+
+    test("can delete event attendance", async () => {
+        const newEvent = await insertEvent(testEvent)
+        const newUser = await insertUser(testUser)
+
+        await attendEvent(newEvent.id, newUser.email)
+
+        await deleteEventAttendance(newEvent.id, newUser.email)
+        
+        deleteEvent(newEvent.id)
+        deleteUser(newUser.email)
+
+        return true
+    })
+
 })

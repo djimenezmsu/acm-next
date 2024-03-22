@@ -1135,8 +1135,8 @@ function getEventAttendanceSync(
     SELECT event_id, user_email
     FROM events_attendance
     WHERE event_id = ?
-    LIMIT :maxEntries
-    OFFSET :offset`).all(event_id, maxEntries, offset) as RawEventAttendance[]
+    LIMIT ?
+    OFFSET ?`).all(event_id, maxEntries, offset) as RawEventAttendance[]
 
     const users: User[] = []
     for (const raw of rawAttendance) {
@@ -1237,6 +1237,42 @@ export function hasUserAttendedEvent(
     return new Promise((resolve, reject) => {
         try {
             resolve(hasUserAttendedEventSync(event_id, user_email))
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+/**
+ * Synchronously deletes the record of a user's attendance to an event.
+ * 
+ * @param event_id The ID of the event.
+ * @param user_email The email of the user to remove the attendance of.
+ */
+function deleteEventAttendanceSync(
+    event_id: Id,
+    user_email: string
+) {
+    db.prepare(`
+    DELETE FROM events_attendance
+    WHERE event_id = ? AND user_email = ?
+    `).run(event_id, user_email)
+}
+
+/**
+ * Deletes the record of a user's attendance to an event.
+ * 
+ * @param event_id The ID of the event.
+ * @param user_email The email of the user to remove the attendance of.
+ * @returns A promise that resolves when the attendance record is deleted.
+ */
+export function deleteEventAttendance(
+    event_id: Id,
+    user_email: string
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        try {
+            resolve(deleteEventAttendanceSync(event_id, user_email))
         } catch (error) {
             reject(error)
         }
