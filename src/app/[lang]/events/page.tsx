@@ -9,6 +9,7 @@ import { PageSelector } from "@/components/page-selector"
 import { AccessLevel, Event, FilterDirection, Semester } from "@/data/types"
 import { filterEvents } from "@/data/webData"
 import { getActiveSession } from "@/lib/oauth"
+import { isEventInProgress } from "@/lib/utils"
 import { Locale, getDictionary } from "@/localization"
 import { cookies } from "next/headers"
 import Link from "next/link"
@@ -53,7 +54,7 @@ export default async function EventsPage(
     })).results[0] as Event | null
 
     // check whether the upcoming event is in progress
-    const upcomingEventInProgress = upcomingEvent ? (dateTimeNow >= upcomingEvent.startDate && upcomingEvent.endDate > dateTimeNow) : false
+    const upcomingEventInProgress = upcomingEvent ? isEventInProgress(upcomingEvent) : false
 
     // get events in the future only if we're on the first page.
     const futureEvents = currentPage === 0 ? await filterEvents({

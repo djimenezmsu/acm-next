@@ -1,3 +1,5 @@
+import { Event } from "@/data/types"
+
 export function dateToDateInputValue(
     date: Date
 ): string {
@@ -8,4 +10,11 @@ export function dateToDateInputValue(
     const minutes = String(date.getMinutes()).padStart(2, '0')
 
     return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+export function isEventInProgress(
+    event: Event
+) {
+    const dateTimeNow = new Date()
+    return dateTimeNow >= event.startDate && event.endDate > dateTimeNow
 }
