@@ -14,6 +14,7 @@ import Image from "@/components/image"
 import { IconButton } from "@/components/material/icon-button"
 import { PageSelector } from "@/components/page-selector"
 import { DeleteEventButton } from "./delete-event-button"
+import { DeleteEventAttendanceButton } from "./delete-event-attendance-button"
 
 const entriesPerPage = 20
 
@@ -109,6 +110,10 @@ export default async function EventsPage(
                             {attendanceUsers.map(user => <AttendanceListItem
                                 key={user.email}
                                 user={user}
+                                action={<DeleteEventAttendanceButton
+                                    eventId={eventId}
+                                    email={user.email}
+                                />}
                             />)}
                             <li><PageSelector
                                 currentOffset={currentOffset}
@@ -131,9 +136,11 @@ export default async function EventsPage(
 
 function AttendanceListItem(
     {
-        user
+        user,
+        action
     }: {
         user: User
+        action: React.ReactNode
     }
 ) {
     return (
@@ -151,9 +158,7 @@ function AttendanceListItem(
                 <h4 className="text-xl font-semibold">{user.givenName} {user.familyName}</h4>
                 <h5 className="text-base text-on-surface-variant">{user.email}</h5>
             </section>
-            <section className="flex-1 flex justify-end">
-                <IconButton icon="delete" />
-            </section>
+            <section className="flex-1 flex justify-end">{action}</section>
         </li>
     )
 }
