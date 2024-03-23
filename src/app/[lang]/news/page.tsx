@@ -41,7 +41,7 @@ export default async function Newsfeed(
 
     //Add each news to its appropriate section
     data.forEach(announcement => {
-        sections[2 * (maxYear - announcement.postDate.getFullYear()) + (announcement.postDate.getMonth() > 6 ? 0 : 1)].push(announcement)
+        sections[2 * (maxYear - announcement.postDate.getFullYear()) + (announcement.postDate.getMonth() > 5 ? 0 : 1)].push(announcement)
     })
 
     // get the language dictionary

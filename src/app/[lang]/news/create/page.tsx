@@ -41,44 +41,53 @@ export default async function Announcement(
             return
 
         await insertNews(
-            title.toString(), 
+            title.toString(),
             subject == null ? null : subject.toString(),
-            body.toString(), 
-            new Date(postDate.toString()), 
-            (imageInput != null)? imageInput.name : ""
+            body.toString(),
+            new Date(postDate.toString()),
+            (imageInput != null) ? imageInput.name : ""
         )
 
         redirect("/news")
     }
     return (
         <form action={createAnnouncment} className="w-full flex flex-col gap-5">
-            <PageHeader text="New Post" actions={<FilledButton text={langDict.create_post}/>} />
+            <PageHeader text="New Post"
+                actions={
+                    <section className="flex flex-col md:flex-row gap-5">
+                        <section className="hidden md:block">
+                        <FilledButton text={langDict.cancel_post} icon="close" href="./"/>
+                        </section>
+                        <FilledButton text={langDict.create_post} icon="add" />
+                    </section>
+                }
+            />
             <Divider />
-            <section className="w-full flex flex-cols-2 gap-5 justify-between items-start">
-            <ol className="flex-1 flex flex-col gap-5 text-on-surface">
-                <li className="w-full flex flex-col gap-2 text-on-surface">
-                    <InputSection title={langDict.news_title}>
-                        <TextInputElement name="title" placeholder={langDict.news_title_placeholder} required></TextInputElement>
+            <section className="w-full flex flex-col lg:flex-row gap-5 justify-between items-start">
+                <ol className="w-full flex-1 flex flex-col gap-5 text-on-surface">
+                    <li className="w-full flex flex-col gap-2 text-on-surface">
+                        <InputSection title={langDict.news_title}>
+                            <TextInputElement name="title" placeholder={langDict.news_title_placeholder} required />
+                        </InputSection>
+                    </li>
+                    <li className="w-full flex flex-col gap-2 text-on-surface">
+                        <InputSection title={langDict.news_date}>
+                            <UTCDateInput name="date" required />
+                        </InputSection>
+                    </li>
+                    <li className="w-full flex flex-col gap-2 text-on-surface">
+                        <InputSection title={langDict.news_subject}>
+                            <TextInputElement name="subject" placeholder={langDict.news_subject_placeholder} required />
+                        </InputSection>
+                    </li>
+                </ol>
+                <section className="w-fit m-auto">
+                    <InputSection title={langDict.news_image}>
+                        <ImageInput name="imageInput" />
                     </InputSection>
-                </li>
-                <li className="w-full flex flex-col gap-2 text-on-surface">
-                    <InputSection title={langDict.news_date}>
-                        <UTCDateInput name="date" required/>
-                    </InputSection>
-                </li>
-                <li className="w-full flex flex-col gap-2 text-on-surface">
-                    <InputSection title={langDict.news_subject}>
-                        <TextInputElement name="subject" placeholder={langDict.news_subject_placeholder} required></TextInputElement>
-                    </InputSection>
-                </li>
-            </ol>
-            <section className="w-fit">
-            <ImageInput name="imageInput"/>                        
+                </section>
             </section>
-            </section>
-            <section>
-                <MarkdownInput title={langDict.news_body} name="body"/>
-            </section>
+            <MarkdownInput title={langDict.news_body} name="body" />
         </form>
     )
 }
