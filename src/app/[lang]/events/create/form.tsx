@@ -15,8 +15,6 @@ const initialFormState = {
     error: undefined
 } as CreateEventActionState
 
-const visiblityOptions: SelectInputOption[] = []
-
 export function CreateEventForm(
     {
         eventTypeOptions
@@ -80,6 +78,7 @@ export function CreateEventForm(
                 <SelectInput
                     name='type'
                     options={eventTypeOptions}
+                    required
                 />
             </InputSection>
 
@@ -97,6 +96,7 @@ export function CreateEventForm(
                             value: String(AccessLevel.OFFICER)
                         }
                     ]}
+                    required
                 />
             </InputSection>
 

@@ -42,22 +42,22 @@ export default async function EventsPage(
     const currentPage = Math.max(Number.parseInt(searchParams.page) || 0, 0) // parse the page search parameter, ensuring that it is >= 1
 
     // get past & future events
-    const dateNow = new Date()
+    const dateTimeNow = new Date()
 
     // get the most recent upcoming event to display at the top of the page
     const upcomingEvent = (await filterEvents({
-        fromDate: dateNow,
+        fromDate: dateTimeNow,
         minAccessLevel: accessLevel,
         direction: FilterDirection.ASCENDING,
         maxEntries: 1
     })).results[0] as Event | null
 
     // check whether the upcoming event is in progress
-    const upcomingEventInProgress = upcomingEvent ? (dateNow >= upcomingEvent.startDate && upcomingEvent.endDate > dateNow) : false
+    const upcomingEventInProgress = upcomingEvent ? (dateTimeNow >= upcomingEvent.startDate && upcomingEvent.endDate > dateTimeNow) : false
 
     // get events in the future only if we're on the first page.
     const futureEvents = currentPage === 0 ? await filterEvents({
-        fromDate: dateNow,
+        fromDate: dateTimeNow,
         minAccessLevel: accessLevel,
         offset: 1,
         direction: FilterDirection.ASCENDING
@@ -65,7 +65,7 @@ export default async function EventsPage(
 
     const currentOffset = currentPage * entriesPerPage
     const pastEvents = await filterEvents({
-        toDate: dateNow,
+        toDate: dateTimeNow,
         minAccessLevel: accessLevel,
         maxEntries: entriesPerPage,
         offset: currentOffset
