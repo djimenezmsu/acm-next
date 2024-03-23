@@ -907,8 +907,8 @@ function filterEventsSync(
         access_level,
         COUNT(*) OVER() as total_count
     FROM events
-    WHERE (:fromDate IS NULL OR DATE(start_date) >= DATE(:fromDate))
-        AND (:toDate IS NULL OR DATE(:toDate) > DATE(end_date))
+    WHERE (:fromDate IS NULL OR end_date > :fromDate)
+        AND (:toDate IS NULL OR :toDate >= end_date)
         AND (:accessLevel IS NULL OR :accessLevel >= access_level)
     ORDER BY
         CASE WHEN :direction = 0 THEN 1 ELSE start_date END ASC,
