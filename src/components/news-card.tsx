@@ -11,7 +11,7 @@ export async function NewsCard(
             <h3 className="text-2xl">{news.title}</h3>
             <DateFormatter date={news.postDate} mode={DateFormatterMode.NARROW}/>
             <h4>{news.subject}</h4>
-            <FilledButton text={buttonText} href={`/news/:${news.id}`}/>
+            <FilledButton text={buttonText} href={`/news/${news.id}`}/>
         </li>
     )
 }

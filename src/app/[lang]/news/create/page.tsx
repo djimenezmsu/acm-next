@@ -12,15 +12,17 @@ import { getActiveSession } from "@/lib/oauth";
 import { Locale, getDictionary } from "@/localization";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import fs, { writeFile } from 'fs'
-export default async function Announcement(
+import { writeFile } from 'fs'
+export default async function CreateAnnouncement(
     {
-        lang
+        params
     }: {
-        lang: Locale
+        params: {
+            lang: Locale
+        }
     }
 ) {
-    const langDict = await getDictionary(lang)
+    const langDict = await getDictionary(params.lang)
 
     async function createAnnouncment(formData: FormData) {
         'use server'
@@ -33,32 +35,34 @@ export default async function Announcement(
         const postDate = formData.get("date")
         const subject = formData.get("subject")
         const body = formData.get("body")
-        const imageInput = formData.get("imageInput") as File | null
+        const imageInput = formData.get("imageInput") as File
 
         //Don't create announcement if non nullable are null
         if (title == null || body == null || postDate == "" || postDate == null)
             return
 
         //Store file on server
-        if (imageInput != null) {
+        if (imageInput.size != 0 ) {
             const content = await imageInput.arrayBuffer()
                 .then(response => new Int8Array(response))
             writeFile(`./public/media_images/${imageInput.name}`, content, (err) => {
                 if (err != null)
                     console.log(err)
+                redirect("/news")
             })
         }
-
+        
         await insertNews(
             title.toString(),
             subject == null ? null : subject.toString(),
             body.toString(),
             new Date(postDate.toString()),
-            (imageInput != null) ? imageInput.name : ""
+            (imageInput.size != 0) ? imageInput.name : ""
         )
 
         redirect("/news")
     }
+
     return (
         <form action={createAnnouncment} className="w-full flex flex-col gap-5">
             <PageHeader text="New Post"

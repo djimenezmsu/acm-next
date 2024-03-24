@@ -27,6 +27,7 @@
     "news_body": "Body",
     "news_body_placeholder": "Body",
     "news_image": "Social Media Image",
+    "news_id_not_found": "News Id does not exist",
     "view_more": "View More",
     "create_post": "Create",
     "cancel_post": "Cancel",

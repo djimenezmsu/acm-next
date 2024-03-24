@@ -10,9 +10,11 @@ import { cookies } from "next/headers";
 
 export default async function Newsfeed(
     {
-        lang
+        params
     }: {
-        lang: Locale
+        params: {
+            lang: Locale
+        }
     }
 ) {
     let data: News[] = []
@@ -45,7 +47,7 @@ export default async function Newsfeed(
     })
 
     // get the language dictionary
-    const langDict = await getDictionary(lang)
+    const langDict = await getDictionary(params.lang)
     const session = await getActiveSession(cookies())
     const accessLevel = session ? session.user.accessLevel : AccessLevel.NON_MEMBER
             
