@@ -44,5 +44,13 @@
     "new_event_type_field": "Type",
     "new_event_visibility_field": "Visibility",
     "new_event_visibility_all": "Anyone",
-    "new_event_visibility_restricted": "Officers & Advisors Only"
+    "new_event_visibility_restricted": "Officers & Advisors Only",
+    "new_event_create": "Create",
+    "event_edit": "Edit",
+    "event_delete": "Delete",
+    "event_add_to_calendar": "Add to Calendar",
+    "event_attendance": "Attendance",
+    "event_no_attendance": "No one has attended this event yet.",
+    "edit_event_title": "Edit ':event_title'",
+    "edit_event_save": "Save"
 }

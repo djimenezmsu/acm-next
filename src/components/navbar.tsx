@@ -114,7 +114,7 @@ export default function Navbar(
                         className="rounded-full object-cover"
                     />
                 </Link>
-                ) : <FilledButton text={langDict.nav_login} href='/api/oauth' />}
+                ) : <FilledButton text={langDict.nav_login} href={`/api/oauth?refer=${pathName}`} />}
             </nav>
         </header>
     )

@@ -125,3 +125,33 @@ export interface EventFilterResult {
     totalCount: number,
     results: Event[]
 }
+
+/* Event Attendance */
+export interface RawEventAttendance {
+    event_id: Id,
+    user_email: string
+}
+
+export interface RawFilterEventAttendance extends RawEventAttendance{
+    total_count: number
+}
+
+export interface EventAttendance {
+    eventId: Id,
+    userEmail: string
+}
+
+export interface EventsAttendanceFilterParams {
+    eventIds?: Id[],
+    userEmails?: string[],
+    fromDate?: Date
+    toDate?: Date
+    offset?: number
+    maxEntries?: number
+    direction?: FilterDirection
+}
+
+export interface EventsAttendanceFilterResult {
+    totalCount: number,
+    results: EventAttendance[]
+}
