@@ -35,7 +35,7 @@ export function ImageInput(
                 </>
                 }
             </label>
-            <input name={name} id={name} type="file" accept="image/*" hidden ref={hiddenRef} 
+            <input name={name} id={name} type="file" accept="image/jpeg" hidden ref={hiddenRef} 
             onClick={
                 (event) => {
                     if (files) {

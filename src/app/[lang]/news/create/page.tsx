@@ -2,7 +2,6 @@ import { ImageInput } from "@/components/input/image-input";
 import { InputSection } from "@/components/input/input-section";
 import { MarkdownInput } from "@/components/input/markdown-input";
 import { TextInputElement } from "@/components/input/text-input";
-import { TextAreaInputElement } from "@/components/input/textarea-input";
 import { UTCDateInput } from "@/components/input/utc-date-input";
 import { Divider } from "@/components/material/divider";
 import { FilledButton } from "@/components/material/filled-button";
@@ -13,7 +12,7 @@ import { getActiveSession } from "@/lib/oauth";
 import { Locale, getDictionary } from "@/localization";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
+import fs, { writeFile } from 'fs'
 export default async function Announcement(
     {
         lang
@@ -39,6 +38,16 @@ export default async function Announcement(
         //Don't create announcement if non nullable are null
         if (title == null || body == null || postDate == "" || postDate == null)
             return
+
+        //Store file on server
+        if (imageInput != null) {
+            const content = await imageInput.arrayBuffer()
+                .then(response => new Int8Array(response))
+            writeFile(`./public/media_images/${imageInput.name}`, content, (err) => {
+                if (err != null)
+                    console.log(err)
+            })
+        }
 
         await insertNews(
             title.toString(),
