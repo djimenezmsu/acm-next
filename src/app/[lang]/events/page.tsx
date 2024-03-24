@@ -17,6 +17,7 @@ import Link from "next/link"
 
 export const showQRCodeMinAccessLevel = AccessLevel.OFFICER
 export const createEventMinAccessLevel = AccessLevel.OFFICER
+export const createNewsMinAccessLevel = AccessLevel.OFFICER
 
 const entriesPerPage = 10
 
