@@ -8,11 +8,16 @@ import { PageHeader } from "@/components/page-header";
 
 export default async function Newsfeed(
     {
-        lang
+        params
     }: {
-        lang: Locale
+        params: {
+            lang: Locale
+        }
     }
 ) {
+    // get the language dictionary
+    const langDict = await getDictionary(params.lang)
+
     let data: News[] = []
     await getNewsfeed(50, 1)
         .then(result => data = result)
@@ -42,8 +47,6 @@ export default async function Newsfeed(
         sections[2 * (maxYear - announcement.postDate.getFullYear()) + (announcement.postDate.getMonth() > 6 ? 0 : 1)].push(announcement)
     })
 
-    // get the language dictionary
-    const langDict = await getDictionary(lang)
 
     return (
         <article className="w-full flex flex-col gap-5">
@@ -56,7 +59,7 @@ export default async function Newsfeed(
                 sections.map(section => {
                     if (section.length < 1)
                         return undefined
-                    
+
                     const sectionIndex = sections.indexOf(section)
                     return (
                         <section className="w-full flex flex-col gap-5 text-on-surface" key={sectionIndex}>

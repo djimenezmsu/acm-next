@@ -14,12 +14,14 @@ import { redirect } from "next/navigation";
 
 export default async function Announcement(
     {
-        lang
+        params
     }: {
-        lang: Locale
+        params: {
+            lang: Locale
+        }
     }
 ) {
-    const langDict = await getDictionary(lang)
+    const langDict = await getDictionary(params.lang)
 
     async function createAnnouncment(formData: FormData) {
         'use server'
