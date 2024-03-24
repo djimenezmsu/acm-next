@@ -37,3 +37,6 @@ next-env.d.ts
 
 # database
 /src/data/database
+
+#uploaded images
+/public/media_images/*

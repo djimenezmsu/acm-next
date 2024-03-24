@@ -7,11 +7,11 @@ export async function NewsCard(
     {news, buttonText}: {news:News, buttonText: string},
 ){
     return (
-        <li className="lg:w-100% bg-surface-container p-4 rounded-2xl flex flex-col gap-5 h-fit text-wrap">
+        <li className="lg:w-100% bg-surface-container p-4 rounded-2xl flex flex-col gap-5 h-fit text-wrap break-words">
             <h3 className="text-2xl">{news.title}</h3>
             <DateFormatter date={news.postDate} mode={DateFormatterMode.NARROW}/>
             <h4>{news.subject}</h4>
-            <FilledButton text={buttonText} href={`/news/:${news.id}`}/>
+            <FilledButton text={buttonText} href={`/news/${news.id}`}/>
         </li>
     )
 }

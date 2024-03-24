@@ -1,16 +1,20 @@
 import { getNewsfeed } from "@/data/webData";
-import { News } from "@/data/types"
+import { AccessLevel, News } from "@/data/types"
 import { NewsCard } from "@/components/news-card";
 import { Divider } from "@/components/material/divider";
 import { FilledButton } from "@/components/material/filled-button";
 import { Locale, getDictionary } from "@/localization";
 import { PageHeader } from "@/components/page-header";
+import { getActiveSession } from "@/lib/oauth";
+import { cookies } from "next/headers";
 
 export default async function Newsfeed(
     {
-        lang
+        params
     }: {
-        lang: Locale
+        params: {
+            lang: Locale
+        }
     }
 ) {
     let data: News[] = []
@@ -39,17 +43,20 @@ export default async function Newsfeed(
 
     //Add each news to its appropriate section
     data.forEach(announcement => {
-        sections[2 * (maxYear - announcement.postDate.getFullYear()) + (announcement.postDate.getMonth() > 6 ? 0 : 1)].push(announcement)
+        sections[2 * (maxYear - announcement.postDate.getFullYear()) + (announcement.postDate.getMonth() > 5 ? 0 : 1)].push(announcement)
     })
 
     // get the language dictionary
-    const langDict = await getDictionary(lang)
+    const langDict = await getDictionary(params.lang)
+    const session = await getActiveSession(cookies())
+    const accessLevel = session ? session.user.accessLevel : AccessLevel.NON_MEMBER
+            
 
     return (
         <article className="w-full flex flex-col gap-5">
             <PageHeader
                 text={langDict.nav_news}
-                actions={<FilledButton text={langDict.news_new_post} href="/news/create" />}
+                actions={(accessLevel > AccessLevel.NON_MEMBER)? <FilledButton text={langDict.news_new_post} href="/news/create" /> : <></>}
             />
             <Divider />
             {
