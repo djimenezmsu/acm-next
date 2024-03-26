@@ -54,5 +54,11 @@
     "event_attendance": "",
     "event_no_attendance": "",
     "edit_event_title": "",
-    "edit_event_save": ""
+    "edit_event_save": "",
+    "account_title": "",
+    "account_full_name": "",
+    "account_log_out": "",
+    "account_attendance_title": "",
+    "account_attendance_points": "",
+    "account_attendance_empty": ""
 }

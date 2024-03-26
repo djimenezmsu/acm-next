@@ -128,7 +128,7 @@ export default async function EventsPage(
     )
 }
 
-function FutureEventItem(
+export function FutureEventItem(
     {
         event
     }: {

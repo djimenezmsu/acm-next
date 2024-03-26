@@ -109,3 +109,20 @@ export async function generateSession(
 
     return session
 }
+
+/**
+ * Logs out an active sesssion
+ * 
+ * @param token The active session's token.
+ * @param cookies The cookies object to save the session token to.
+ * @returns A promise that resolves when logged out.
+ */
+export async function logout(
+    token: string,
+    cookies: ReadonlyRequestCookies,
+    cookieName: string = defaultCookieName
+): Promise<void> {
+    await deleteSession(token)
+
+    cookies.delete(cookieName)
+}

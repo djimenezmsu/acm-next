@@ -54,5 +54,11 @@
     "event_attendance": "Attendance",
     "event_no_attendance": "No one has attended this event yet.",
     "edit_event_title": "Edit ':event_title'",
-    "edit_event_save": "Save"
+    "edit_event_save": "Save",
+    "account_title": "Account",
+    "account_full_name": ":givenName :familyName",
+    "account_log_out": "Log Out",
+    "account_attendance_title": "Attendance History",
+    "account_attendance_points": ":points attendance points",
+    "account_attendance_empty": "You have not attended any events."
 }
